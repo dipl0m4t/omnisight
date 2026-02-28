@@ -1,6 +1,88 @@
+import { useEffect, useState } from "react";
 import "./App.css";
 
+type MarketRow = {
+  id: string;
+  name: string;
+  symbol: string;
+  current_price: number;
+  market_cap: number;
+  price_change_percentage_24h: number | null;
+};
+
+function formatPrice(value: number): string {
+  if (value >= 1000) {
+    return `$${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+  }
+  if (value >= 1) {
+    return `$${value.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }
+  return `$${value.toLocaleString("en-US", {
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 6,
+  })}`;
+}
+
+function formatMarketCap(value: number): string {
+  if (value >= 1e12) {
+    return `$${(value / 1e12).toFixed(2)}T`;
+  }
+  if (value >= 1e9) {
+    return `$${(value / 1e9).toFixed(1)}B`;
+  }
+  if (value >= 1e6) {
+    return `$${(value / 1e6).toFixed(1)}M`;
+  }
+  return `$${value.toLocaleString("en-US")}`;
+}
+
 function App() {
+  const [markets, setMarkets] = useState<MarketRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(
+          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false"
+        );
+
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+
+        const data = (await response.json()) as MarketRow[];
+
+        if (!cancelled) {
+          setMarkets(data);
+        }
+      } catch (_err) {
+        if (!cancelled) {
+          setError("FAILED TO SYNC MARKET DATA");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-black text-[#71717a] flex flex-col">
       <header className="sticky top-0 z-20 border-b border-zinc-800 bg-black">
@@ -68,212 +150,62 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-zinc-800">
-                <td className="px-4 py-2">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-medium text-white">
-                      Bitcoin
-                    </span>
-                    <span className="text-[10px] font-mono text-[#71717a]">
-                      BTC
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  $95,230
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
-                  $1.86T
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  <span className="text-[#16a34a] font-medium">+2.4%</span>
-                </td>
-              </tr>
-              <tr className="border-b border-zinc-800">
-                <td className="px-4 py-2">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-medium text-white">
-                      Ethereum
-                    </span>
-                    <span className="text-[10px] font-mono text-[#71717a]">
-                      ETH
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  $2,745
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
-                  $327B
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  <span className="text-[#dc2626] font-medium">-1.1%</span>
-                </td>
-              </tr>
-              <tr className="border-b border-zinc-800">
-                <td className="px-4 py-2">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-medium text-white">
-                      Solana
-                    </span>
-                    <span className="text-[10px] font-mono text-[#71717a]">
-                      SOL
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  $178.40
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
-                  $82.4B
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  <span className="text-[#16a34a] font-medium">+3.7%</span>
-                </td>
-              </tr>
-              <tr className="border-b border-zinc-800">
-                <td className="px-4 py-2">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-medium text-white">BNB</span>
-                    <span className="text-[10px] font-mono text-[#71717a]">
-                      BNB
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  $412.30
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
-                  $61.9B
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  <span className="text-[#16a34a] font-medium">+0.9%</span>
-                </td>
-              </tr>
-              <tr className="border-b border-zinc-800">
-                <td className="px-4 py-2">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-medium text-white">
-                      Cardano
-                    </span>
-                    <span className="text-[10px] font-mono text-[#71717a]">
-                      ADA
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  $0.64
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
-                  $22.3B
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  <span className="text-[#dc2626] font-medium">-0.8%</span>
-                </td>
-              </tr>
-              <tr className="border-b border-zinc-800">
-                <td className="px-4 py-2">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-medium text-white">XRP</span>
-                    <span className="text-[10px] font-mono text-[#71717a]">
-                      XRP
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  $0.58
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
-                  $31.5B
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  <span className="text-[#16a34a] font-medium">+1.6%</span>
-                </td>
-              </tr>
-              <tr className="border-b border-zinc-800">
-                <td className="px-4 py-2">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-medium text-white">
-                      Avalanche
-                    </span>
-                    <span className="text-[10px] font-mono text-[#71717a]">
-                      AVAX
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  $47.20
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
-                  $17.9B
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  <span className="text-[#dc2626] font-medium">-2.3%</span>
-                </td>
-              </tr>
-              <tr className="border-b border-zinc-800">
-                <td className="px-4 py-2">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-medium text-white">
-                      Dogecoin
-                    </span>
-                    <span className="text-[10px] font-mono text-[#71717a]">
-                      DOGE
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  $0.18
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
-                  $25.2B
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  <span className="text-[#16a34a] font-medium">+5.1%</span>
-                </td>
-              </tr>
-              <tr className="border-b border-zinc-800">
-                <td className="px-4 py-2">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-medium text-white">
-                      Polkadot
-                    </span>
-                    <span className="text-[10px] font-mono text-[#71717a]">
-                      DOT
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  $9.32
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
-                  $12.8B
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  <span className="text-[#dc2626] font-medium">-1.9%</span>
-                </td>
-              </tr>
-              <tr className="border-b border-zinc-800">
-                <td className="px-4 py-2">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-medium text-white">
-                      Chainlink
-                    </span>
-                    <span className="text-[10px] font-mono text-[#71717a]">
-                      LINK
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  $18.75
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
-                  $11.2B
-                </td>
-                <td className="px-4 py-2 text-right text-sm font-mono">
-                  <span className="text-[#16a34a] font-medium">+0.4%</span>
-                </td>
-              </tr>
+              {loading && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-4 py-10 text-center text-xs font-mono tracking-[0.2em] text-[#71717a]"
+                  >
+                    SYNCING DATA...
+                  </td>
+                </tr>
+              )}
+
+              {!loading && error && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-4 py-10 text-center text-xs font-mono tracking-[0.2em] text-[#71717a]"
+                  >
+                    {error}
+                  </td>
+                </tr>
+              )}
+
+              {!loading &&
+                !error &&
+                markets.map((coin) => {
+                  const change = coin.price_change_percentage_24h ?? 0;
+                  const isNegative = change < 0;
+                  const changeColor = isNegative
+                    ? "text-[#dc2626]"
+                    : "text-[#16a34a]";
+                  const changeValue = `${change.toFixed(1)}%`;
+
+                  return (
+                    <tr key={coin.id} className="border-b border-zinc-800">
+                      <td className="px-4 py-2">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xs font-medium text-white">
+                            {coin.name}
+                          </span>
+                          <span className="text-[10px] font-mono text-[#71717a]">
+                            {coin.symbol.toUpperCase()}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2 text-right text-sm font-mono">
+                        {formatPrice(coin.current_price)}
+                      </td>
+                      <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
+                        {formatMarketCap(coin.market_cap)}
+                      </td>
+                      <td className="px-4 py-2 text-right text-sm font-mono">
+                        <span className={changeColor}>{changeValue}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>
