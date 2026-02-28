@@ -1,44 +1,46 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import type { Mesh } from "three";
+import * as THREE from "three";
 
-function WireCube() {
-  const meshRef = useRef<Mesh | null>(null);
+function AmbientGlow({
+  color,
+  position,
+  speed,
+}: {
+  color: string;
+  position: [number, number, number];
+  speed: number;
+}) {
+  const meshRef = useRef<THREE.Mesh>(null);
 
-  useFrame((_, delta) => {
-    if (!meshRef.current) return;
-    // Чуть-чуть замедлил, чтобы не мельтешило
-    meshRef.current.rotation.y += delta * 0.08;
-    meshRef.current.rotation.x += delta * 0.03;
+  useFrame(({ clock }) => {
+    if (meshRef.current) {
+      const t = clock.getElapsedTime() * speed;
+      // Мягкое движение по восьмерке
+      meshRef.current.position.x = position[0] + Math.sin(t) * 2;
+      meshRef.current.position.y = position[1] + Math.cos(t * 0.5) * 2;
+    }
   });
 
   return (
-    // Уменьшил масштаб, чтобы куб был виден целиком как объект
-    <mesh ref={meshRef} scale={[1, 1, 1]}>
-      <boxGeometry args={[4, 4, 4]} />
-      <meshBasicMaterial
-        wireframe
-        color="#27272a" // Тёмно-серый, очень строгий
-        transparent
-        opacity={0.5} // Оптимально для фона
-      />
+    <mesh ref={meshRef} position={position}>
+      <sphereGeometry args={[8, 32, 32]} />
+      <meshBasicMaterial color={color} transparent opacity={0.07} />
     </mesh>
   );
 }
 
-function BackgroundGeometry() {
+export default function BackgroundGeometry() {
   return (
-    <div className="fixed inset-0 z-[-1] pointer-events-none bg-black">
-      <Canvas
-        camera={{ position: [0, 0, 10] }}
-        gl={{ antialias: true, alpha: true }}
-        // Важно: Canvas должен занимать всё место
-        style={{ width: "100%", height: "100%" }}
-      >
-        <WireCube />
+    <div className="fixed inset-0 z-[-1] bg-[#030303]">
+      <Canvas camera={{ position: [0, 0, 20] }}>
+        {/* Три пятна света в разных частях экрана */}
+        <AmbientGlow color="#3f3f46" position={[-10, 5, 0]} speed={0.2} />
+        <AmbientGlow color="#18181b" position={[10, -5, 0]} speed={0.3} />
+        <AmbientGlow color="#27272a" position={[0, 0, -5]} speed={0.1} />
       </Canvas>
+      {/* Добавляем блюр прямо поверх Canvas для мягкости */}
+      <div className="absolute inset-0 backdrop-blur-[120px] pointer-events-none" />
     </div>
   );
 }
-
-export default BackgroundGeometry;
