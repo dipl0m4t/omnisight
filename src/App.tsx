@@ -1,41 +1,285 @@
-import './App.css'
+import "./App.css";
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#0f172a]">
-      <h1 className="text-5xl font-bold mb-12 bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]">
-        OmniSight
-      </h1>
-
-      <div className="flex flex-col sm:flex-row gap-6">
-        {/* Bitcoin Card */}
-        <div className="w-72 rounded-2xl border border-cyan-500/50 bg-slate-900/80 p-6 shadow-[0_0_30px_rgba(34,211,238,0.15)] backdrop-blur-sm transition-all hover:shadow-[0_0_40px_rgba(34,211,238,0.25)] hover:border-cyan-400/70">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-3xl">₿</span>
-            <span className="text-xl font-semibold text-slate-100">Bitcoin</span>
-            <span className="text-sm font-mono text-cyan-400">BTC</span>
+    <div className="min-h-screen bg-black text-[#71717a] flex flex-col">
+      <header className="sticky top-0 z-20 border-b border-zinc-800 bg-black">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+          <div className="flex items-center">
+            <span className="font-bold tracking-tight text-white text-sm sm:text-base">
+              [OMNISIGHT]
+            </span>
           </div>
-          <p className="text-3xl font-bold text-white mb-1">$95,230</p>
-          <p className="text-emerald-400 text-sm font-medium flex items-center gap-1">
-            <span>▲</span> +2.4%
-          </p>
-        </div>
 
-        {/* Ethereum Card */}
-        <div className="w-72 rounded-2xl border border-violet-500/50 bg-slate-900/80 p-6 shadow-[0_0_30px_rgba(139,92,246,0.15)] backdrop-blur-sm transition-all hover:shadow-[0_0_40px_rgba(139,92,246,0.25)] hover:border-violet-400/70">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-3xl">Ξ</span>
-            <span className="text-xl font-semibold text-slate-100">Ethereum</span>
-            <span className="text-sm font-mono text-violet-400">ETH</span>
+          <nav className="flex-1 flex justify-center">
+            <div className="flex items-center gap-4 text-xs sm:text-sm">
+              <a
+                href="#"
+                className="text-[#71717a] hover:text-white transition-colors"
+              >
+                MARKETS
+              </a>
+              <a
+                href="#"
+                className="text-[#71717a] hover:text-white transition-colors"
+              >
+                ANALYTICS
+              </a>
+              <a
+                href="#"
+                className="text-[#71717a] hover:text-white transition-colors"
+              >
+                PORTFOLIO
+              </a>
+            </div>
+          </nav>
+
+          <div className="flex items-center justify-end">
+            <button className="px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium bg-white text-black border border-zinc-800 rounded-none hover:bg-zinc-100 transition-colors">
+              CONNECT WALLET
+            </button>
           </div>
-          <p className="text-3xl font-bold text-white mb-1">$2,745</p>
-          <p className="text-red-400 text-sm font-medium flex items-center gap-1">
-            <span>▼</span> -1.1%
-          </p>
         </div>
-      </div>
+      </header>
+
+      <main className="flex-1 flex justify-center px-6 py-6">
+        <div className="w-full max-w-5xl mt-12">
+          <div className="mb-3">
+            <span className="text-[11px] font-semibold text-zinc-500 tracking-[0.2em]">
+              MARKET OVERVIEW
+            </span>
+          </div>
+
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="border-b border-zinc-800">
+                <th className="text-left px-4 py-2 font-medium text-[#71717a] uppercase tracking-widest text-[10px]">
+                  Asset
+                </th>
+                <th className="text-right px-4 py-2 font-medium text-[#71717a] uppercase tracking-widest text-[10px]">
+                  Price
+                </th>
+                <th className="text-right px-4 py-2 font-medium text-[#71717a] uppercase tracking-widest text-[10px] hidden sm:table-cell">
+                  MKT CAP
+                </th>
+                <th className="text-right px-4 py-2 font-medium text-[#71717a] uppercase tracking-widest text-[10px]">
+                  24h
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-zinc-800">
+                <td className="px-4 py-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs font-medium text-white">
+                      Bitcoin
+                    </span>
+                    <span className="text-[10px] font-mono text-[#71717a]">
+                      BTC
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  $95,230
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
+                  $1.86T
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  <span className="text-[#16a34a] font-medium">+2.4%</span>
+                </td>
+              </tr>
+              <tr className="border-b border-zinc-800">
+                <td className="px-4 py-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs font-medium text-white">
+                      Ethereum
+                    </span>
+                    <span className="text-[10px] font-mono text-[#71717a]">
+                      ETH
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  $2,745
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
+                  $327B
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  <span className="text-[#dc2626] font-medium">-1.1%</span>
+                </td>
+              </tr>
+              <tr className="border-b border-zinc-800">
+                <td className="px-4 py-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs font-medium text-white">
+                      Solana
+                    </span>
+                    <span className="text-[10px] font-mono text-[#71717a]">
+                      SOL
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  $178.40
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
+                  $82.4B
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  <span className="text-[#16a34a] font-medium">+3.7%</span>
+                </td>
+              </tr>
+              <tr className="border-b border-zinc-800">
+                <td className="px-4 py-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs font-medium text-white">BNB</span>
+                    <span className="text-[10px] font-mono text-[#71717a]">
+                      BNB
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  $412.30
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
+                  $61.9B
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  <span className="text-[#16a34a] font-medium">+0.9%</span>
+                </td>
+              </tr>
+              <tr className="border-b border-zinc-800">
+                <td className="px-4 py-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs font-medium text-white">
+                      Cardano
+                    </span>
+                    <span className="text-[10px] font-mono text-[#71717a]">
+                      ADA
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  $0.64
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
+                  $22.3B
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  <span className="text-[#dc2626] font-medium">-0.8%</span>
+                </td>
+              </tr>
+              <tr className="border-b border-zinc-800">
+                <td className="px-4 py-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs font-medium text-white">XRP</span>
+                    <span className="text-[10px] font-mono text-[#71717a]">
+                      XRP
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  $0.58
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
+                  $31.5B
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  <span className="text-[#16a34a] font-medium">+1.6%</span>
+                </td>
+              </tr>
+              <tr className="border-b border-zinc-800">
+                <td className="px-4 py-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs font-medium text-white">
+                      Avalanche
+                    </span>
+                    <span className="text-[10px] font-mono text-[#71717a]">
+                      AVAX
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  $47.20
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
+                  $17.9B
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  <span className="text-[#dc2626] font-medium">-2.3%</span>
+                </td>
+              </tr>
+              <tr className="border-b border-zinc-800">
+                <td className="px-4 py-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs font-medium text-white">
+                      Dogecoin
+                    </span>
+                    <span className="text-[10px] font-mono text-[#71717a]">
+                      DOGE
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  $0.18
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
+                  $25.2B
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  <span className="text-[#16a34a] font-medium">+5.1%</span>
+                </td>
+              </tr>
+              <tr className="border-b border-zinc-800">
+                <td className="px-4 py-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs font-medium text-white">
+                      Polkadot
+                    </span>
+                    <span className="text-[10px] font-mono text-[#71717a]">
+                      DOT
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  $9.32
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
+                  $12.8B
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  <span className="text-[#dc2626] font-medium">-1.9%</span>
+                </td>
+              </tr>
+              <tr className="border-b border-zinc-800">
+                <td className="px-4 py-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs font-medium text-white">
+                      Chainlink
+                    </span>
+                    <span className="text-[10px] font-mono text-[#71717a]">
+                      LINK
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  $18.75
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono text-[#71717a] hidden sm:table-cell">
+                  $11.2B
+                </td>
+                <td className="px-4 py-2 text-right text-sm font-mono">
+                  <span className="text-[#16a34a] font-medium">+0.4%</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
