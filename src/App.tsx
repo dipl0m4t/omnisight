@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import BackgroundGeometry from "./components/BackgroundGeometry";
 import "./App.css";
 
 type MarketRow = {
@@ -53,7 +54,7 @@ function App() {
         setError(null);
 
         const response = await fetch(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false"
+          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false",
         );
 
         if (!response.ok) {
@@ -84,8 +85,9 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black text-[#71717a] flex flex-col">
-      <header className="sticky top-0 z-20 border-b border-zinc-800 bg-black">
+    <div className="relative min-h-screen text-[#71717a] flex flex-col selection:bg-white selection:text-black">
+      <BackgroundGeometry />
+      <header className="sticky top-0 z-20 border-b border-zinc-800 bg-black/80 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center">
             <span className="font-bold tracking-tight text-white text-sm sm:text-base">
