@@ -2,45 +2,70 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
 
-function AmbientGlow({
-  color,
-  position,
-  speed,
-}: {
+// Теперь TS знает про offset и не ругается
+interface ShapeProps {
   color: string;
-  position: [number, number, number];
+  offset: number;
   speed: number;
-}) {
+}
+
+function LowPolyShape({ color, offset, speed }: ShapeProps) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   useFrame(({ clock }) => {
     if (meshRef.current) {
-      const t = clock.getElapsedTime() * speed;
-      // Мягкое движение по восьмерке
-      meshRef.current.position.x = position[0] + Math.sin(t) * 2;
-      meshRef.current.position.y = position[1] + Math.cos(t * 0.5) * 2;
+      const t = clock.getElapsedTime() * speed * 0.1;
+      meshRef.current.position.x = Math.sin(t + offset) * 12;
+      meshRef.current.position.y = Math.cos(t * 0.8 + offset) * 8;
+      meshRef.current.position.z = Math.sin(t * 0.5 + offset) * 5;
+      meshRef.current.rotation.x = t * 0.5;
+      meshRef.current.rotation.y = t * 0.3;
     }
   });
 
   return (
-    <mesh ref={meshRef} position={position}>
-      <sphereGeometry args={[8, 32, 32]} />
-      <meshBasicMaterial color={color} transparent opacity={0.07} />
+    <mesh ref={meshRef}>
+      <icosahedronGeometry args={[4, 0]} />
+      <meshStandardMaterial
+        color={color}
+        roughness={0.7}
+        metalness={0.3}
+        flatShading={true}
+      />
     </mesh>
   );
 }
 
-export default function BackgroundGeometry() {
+export default function BackgroundGeometry({ theme }: { theme: string }) {
+  const isDark = theme === "dark";
+
   return (
-    <div className="fixed inset-0 z-[-1] bg-[#030303]">
-      <Canvas camera={{ position: [0, 0, 20] }}>
-        {/* Три пятна света в разных частях экрана */}
-        <AmbientGlow color="#3f3f46" position={[-10, 5, 0]} speed={0.2} />
-        <AmbientGlow color="#18181b" position={[10, -5, 0]} speed={0.3} />
-        <AmbientGlow color="#27272a" position={[0, 0, -5]} speed={0.1} />
+    <div className="fixed inset-0 z-[-1] bg-transparent">
+      <Canvas camera={{ position: [0, 0, 40], fov: 25 }}>
+        <ambientLight intensity={isDark ? 0.5 : 1.2} />
+        <directionalLight
+          position={[10, 15, 10]}
+          intensity={isDark ? 2.5 : 1.5}
+        />
+
+        {/* Цвета стали контрастнее для светлой темы */}
+        <LowPolyShape
+          color={isDark ? "#18181b" : "#94a3b8"}
+          offset={0}
+          speed={0.5}
+        />
+        <LowPolyShape
+          color={isDark ? "#0f0f11" : "#64748b"}
+          offset={2.5}
+          speed={0.4}
+        />
+        <LowPolyShape
+          color={isDark ? "#27272a" : "#cbd5e1"}
+          offset={5}
+          speed={0.3}
+        />
       </Canvas>
-      {/* Добавляем блюр прямо поверх Canvas для мягкости */}
-      <div className="absolute inset-0 backdrop-blur-[120px] pointer-events-none" />
+      <div className="absolute inset-0 backdrop-blur-[2px] pointer-events-none" />
     </div>
   );
 }
