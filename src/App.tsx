@@ -6,14 +6,12 @@ const SparklinePath = ({ d, color }: { d: string; color?: string }) => {
   const pathRef = useRef<SVGPathElement>(null);
   const [pathLength, setPathLength] = useState(0);
 
-  // useLayoutEffect лучше для манипуляций со стилями перед рендерингом
   useLayoutEffect(() => {
     if (pathRef.current) {
-      // Получаем точную длину пути с помощью JavaScript
       const length = pathRef.current.getTotalLength();
       setPathLength(length);
     }
-  }, [d]); // Обновляем длину при изменении пути
+  }, [d]);
 
   return (
     <path
@@ -25,11 +23,9 @@ const SparklinePath = ({ d, color }: { d: string; color?: string }) => {
       strokeLinecap="round"
       strokeLinejoin="round"
       style={{
-        stroke: color, // Устанавливаем цвет
-        opacity: 0.6, // Мягкость
-        // Устанавливаем пунктир в реальную длину пути
+        stroke: color,
+        opacity: 0.6,
         strokeDasharray: pathLength,
-        // Смещаем пунктир на реальную длину, чтобы скрыть его
         strokeDashoffset: pathLength,
       }}
     />
@@ -46,7 +42,6 @@ type MarketRow = {
   sparkline_in_7d?: { price: number[] };
 };
 
-// Утилиты
 function generateSparklinePath(prices?: number[]): string {
   if (!prices || prices.length < 2) return "M 0 10 L 100 10";
 
@@ -113,7 +108,6 @@ function App() {
       <BackgroundGeometry />
 
       <div className="relative z-10 animate-reveal flex flex-col min-h-screen">
-        {/* ХЕДЕР — Возвращен и исправлен */}
         <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-black/60 backdrop-blur-xl">
           <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
             <span className="font-bold tracking-tighter text-white text-lg">
@@ -137,7 +131,6 @@ function App() {
         </header>
 
         <main className="flex-1 max-w-5xl mx-auto w-full pt-20 px-6 pb-20">
-          {/* ПЛАШКА — Возвращена */}
           <div className="mb-10 flex items-center gap-4">
             <div className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -159,7 +152,6 @@ function App() {
                     Mkt Cap
                   </th>
                   <th className="px-6 py-4 text-right">Trend (7d)</th>
-                  <th className="px-6 py-4 text-right">24h</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.03]">
@@ -172,7 +164,7 @@ function App() {
                       SYNCING...
                     </td>
                   </tr>
-                ) : error ? ( // Используем error, чтобы убрать варнинг
+                ) : error ? (
                   <tr>
                     <td
                       colSpan={5}
@@ -184,6 +176,13 @@ function App() {
                 ) : (
                   markets.map((coin, idx) => {
                     const isNeg = (coin.price_change_percentage_24h ?? 0) < 0;
+                    const sparkline = coin.sparkline_in_7d?.price;
+                    let is7dNeg = false;
+                    if (sparkline && sparkline.length > 0) {
+                      const firstPrice = sparkline[0];
+                      const lastPrice = sparkline[sparkline.length - 1];
+                      is7dNeg = lastPrice < firstPrice;
+                    }
                     return (
                       <tr
                         key={coin.id}
@@ -200,8 +199,16 @@ function App() {
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-right font-mono text-sm text-zinc-300">
-                          {formatPrice(coin.current_price)}
+                        <td className="px-6 py-4 text-right font-mono">
+                          <span className="text-sm text-zinc-300">
+                            {formatPrice(coin.current_price)}
+                          </span>
+                          <span
+                            className={`ml-2 text-xs ${isNeg ? "text-red-500/90" : "text-emerald-500/90"}`}
+                          >
+                            ({!isNeg && "+"}
+                            {coin.price_change_percentage_24h?.toFixed(2)}%)
+                          </span>
                         </td>
                         <td className="px-6 py-4 text-right font-mono text-[11px] text-zinc-500 hidden sm:table-cell">
                           {formatMarketCap(coin.market_cap)}
@@ -211,20 +218,14 @@ function App() {
                             className="inline-block w-20 h-7"
                             viewBox="0 0 100 20"
                             preserveAspectRatio="none"
-                            // style={{ opacity: 0.6 }} // Переместили прозрачность в компонент
                           >
                             <SparklinePath
                               d={generateSparklinePath(
                                 coin.sparkline_in_7d?.price,
                               )}
-                              color={isNeg ? "#ef4444" : "#10b981"}
+                              color={is7dNeg ? "#ef4444" : "#10b981"}
                             />
                           </svg>
-                        </td>
-                        <td
-                          className={`px-6 py-4 text-right font-mono text-sm ${isNeg ? "text-red-500" : "text-emerald-500"}`}
-                        >
-                          {coin.price_change_percentage_24h?.toFixed(2)}%
                         </td>
                       </tr>
                     );
