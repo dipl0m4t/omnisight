@@ -3,6 +3,7 @@ import { ThemeToggle } from "./components/theme/ThemeToggle";
 import BackgroundGeometry from "./components/BackgroundGeometry";
 import "./App.css";
 import { useTheme } from "./components/theme/ThemeContext";
+import { Logo } from "./components/Logo";
 
 const mockPortfolio = [
   { id: 1, coinId: "bitcoin", amount: 0.5, buyPrice: 60000 },
@@ -133,7 +134,7 @@ function App() {
       </div>
 
       <header
-        className={`fixed top-6 inset-x-0 mx-auto w-[calc(100%-4rem)] max-w-5xl z-50 thick-glass refractive-distortion transition-colors duration-300 rounded-[32px] border animate-header-reveal
+        className={`fixed top-6 inset-x-0 mx-auto w-[calc(100%-4rem)] max-w-5xl z-50 thick-glass refractive-distortion transition-colors duration-300 rounded-[48px] border animate-header-reveal
         ${
           theme === "dark"
             ? "border-white/[0.08] bg-white/[0.02] shadow-[0_15px_40px_rgba(0,0,0,0.5)]"
@@ -141,11 +142,9 @@ function App() {
         }`}
       >
         <div className="w-full px-10 py-5 flex items-center justify-between">
-          <span className="font-mono font-black tracking-widest text-black dark:text-white text-2xl">
-            [OMNISIGHT]
-          </span>
+          <Logo />
 
-          <nav className="hidden sm:flex gap-8 text-[12px] font-black tracking-[0.3em] text-zinc-600 dark:text-zinc-500 uppercase">
+          <nav className="hidden sm:flex gap-8 text-[12.5px] font-black tracking-[0.3em] text-zinc-600 dark:text-zinc-500 uppercase">
             <button
               onClick={() => setActiveTab("markets")}
               className={`hover:text-black dark:hover:text-white transition-all cursor-pointer ${activeTab === "markets" ? "text-black dark:text-white" : ""}`}
@@ -220,7 +219,7 @@ function App() {
               <tr>
                 <th className={tableHeaderClass}>Asset</th>
                 <th className={`${tableHeaderClass} text-right`}>
-                  {activeTab === "markets" ? "Price" : "Holdings"}
+                  {activeTab === "markets" ? "Price / 24h Change" : "Holdings"}
                 </th>
                 <th
                   className={`${tableHeaderClass} text-right hidden sm:table-cell`}
@@ -256,10 +255,10 @@ function App() {
                     >
                       <td className={tableCellClass}>
                         <div className="flex items-center gap-3">
-                          <span className="text-lg font-black text-zinc-950 dark:text-zinc-100 tracking-tight">
+                          <span className="text-lg font-black text-zinc-950 dark:text-zinc-100 tracking-wide">
                             {coin.name}
                           </span>
-                          <span className="text-[10.5px] font-bold text-zinc-500 dark:text-zinc-400 tracking-wider">
+                          <span className="text-[10.5px] font-bold text-zinc-500 dark:text-zinc-400 tracking-widest">
                             {coin.symbol.toUpperCase()}
                           </span>
                         </div>
@@ -314,10 +313,10 @@ function App() {
                     >
                       <td className={tableCellClass}>
                         <div className="flex items-center gap-3">
-                          <span className="text-lg font-black text-zinc-950 dark:text-zinc-100 tracking-tight">
+                          <span className="text-lg font-black text-zinc-950 dark:text-zinc-100 tracking-wide">
                             {coin.name}
                           </span>
-                          <span className="text-[10.5px] font-bold text-zinc-500 dark:text-zinc-400 tracking-wider">
+                          <span className="text-[10.5px] font-bold text-zinc-500 dark:text-zinc-400 tracking-widest">
                             {coin.symbol.toUpperCase()}
                           </span>
                         </div>
@@ -353,7 +352,7 @@ function App() {
       </main>
 
       <footer
-        className={`relative z-10 border-t transition-colors duration-300 py-12 mt-auto text-[12px] font-mono tracking-[0.4em] uppercase
+        className={`relative z-10 border-t transition-colors duration-300 py-12 mt-auto text-[12px] font-mono font-bold tracking-[0.4em] uppercase
         ${
           theme === "dark"
             ? "border-white/[0.05] bg-black/60 text-zinc-500"

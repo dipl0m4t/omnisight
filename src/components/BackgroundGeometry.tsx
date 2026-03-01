@@ -63,7 +63,7 @@ export default function BackgroundGeometry({ theme }: { theme: string }) {
           speed={0.3}
         />
       </Canvas>
-      <div className="absolute inset-0 backdrop-blur-[2px] pointer-events-none" />
+      <div className="absolute inset-0 backdrop-blur-[7px] pointer-events-none" />
     </div>
   );
 }
