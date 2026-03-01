@@ -2,7 +2,6 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
 
-// Теперь TS знает про offset и не ругается
 interface ShapeProps {
   color: string;
   offset: number;
@@ -48,7 +47,6 @@ export default function BackgroundGeometry({ theme }: { theme: string }) {
           intensity={isDark ? 2.5 : 1.5}
         />
 
-        {/* Цвета стали контрастнее для светлой темы */}
         <LowPolyShape
           color={isDark ? "#18181b" : "#94a3b8"}
           offset={0}

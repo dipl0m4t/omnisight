@@ -4,7 +4,6 @@ import BackgroundGeometry from "./components/BackgroundGeometry";
 import "./App.css";
 import { useTheme } from "./components/theme/ThemeContext";
 
-// --- КОНФИГ И МОКИ ---
 const mockPortfolio = [
   { id: 1, coinId: "bitcoin", amount: 0.5, buyPrice: 60000 },
   { id: 2, coinId: "ethereum", amount: 5, buyPrice: 2000 },
@@ -122,7 +121,6 @@ function App() {
     return () => clearInterval(timer);
   }, []);
 
-  // Улучшенный контраст заголовков для светлой темы (zinc-600)
   const tableHeaderClass = `border-b border-zinc-100 dark:border-white/[0.05] bg-zinc-50/50 dark:bg-white/[0.02] text-xs font-bold uppercase tracking-[0.2em] py-4 px-6 text-zinc-600 dark:text-zinc-500`;
   const tableCellClass = "px-6 py-5 transition-colors";
 
@@ -130,7 +128,6 @@ function App() {
     <div
       className={`relative min-h-screen font-sans transition-colors duration-300 flex flex-col ${theme === "dark" ? "bg-black text-zinc-300" : "bg-white text-zinc-900"}`}
     >
-      {/* ФОНОВАЯ ГЕОМЕТРИЯ */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <BackgroundGeometry theme={theme} />
       </div>
@@ -210,7 +207,6 @@ function App() {
           </div>
         </div>
 
-        {/* ТАБЛИЦА С АНИМАЦИЕЙ ПОЯВЛЕНИЯ (ТОТ САМЫЙ ДИВ) */}
         <div
           className={`border thick-glass refractive-distortion overflow-hidden rounded-[24px] transition-all animate-content-reveal
           ${
