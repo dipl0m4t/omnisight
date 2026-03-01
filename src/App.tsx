@@ -82,7 +82,6 @@ function formatMarketCap(v: number) {
   return `$${(v / 1e6).toFixed(1)}M`;
 }
 
-// --- ОСНОВНОЙ КОМПОНЕНТ ---
 function App() {
   const [markets, setMarkets] = useState<MarketRow[]>([]);
   const [activeTab, setActiveTab] = useState("markets");
