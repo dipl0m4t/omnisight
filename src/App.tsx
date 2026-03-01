@@ -13,7 +13,7 @@ const SparklinePath = ({ d, color }: { d: string; color?: string }) => {
   const [pathLength, setPathLength] = useState(0);
 
   useLayoutEffect(() => {
-    if (pathRef.current) {
+    if (pathRef.current && d !== "M 0 10 L 100 10") {
       const length = pathRef.current.getTotalLength();
       setPathLength(length);
     }
@@ -25,14 +25,15 @@ const SparklinePath = ({ d, color }: { d: string; color?: string }) => {
       d={d}
       className="animate-draw"
       fill="none"
-      strokeWidth="1.5"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
       style={{
         stroke: color,
-        opacity: 0.6,
-        strokeDasharray: pathLength,
-        strokeDashoffset: pathLength,
+        opacity: 0.8,
+        strokeDasharray: pathLength || 1000,
+        strokeDashoffset: pathLength ? 0 : 1000,
+        transition: "stroke-dashoffset 2s ease-in-out",
       }}
     />
   );
@@ -57,7 +58,7 @@ function generateSparklinePath(prices?: number[]): string {
   const max = Math.max(...smoothPrices);
   const range = max - min || 1;
   const width = 100;
-  const height = 20;
+  const height = 40;
 
   const points = smoothPrices.map((price, index) => {
     const x = (index / (smoothPrices.length - 1)) * width;
@@ -130,42 +131,42 @@ function App() {
       <div className="noise-overlay" />
       <BackgroundGeometry />
 
-      <div className="relative z-10 animate-reveal flex flex-col min-h-screen">
-        <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-black/60 backdrop-blur-xl">
-          <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-            <span className="font-bold tracking-widest text-white text-lg">
-              [OMNISIGHT]
-            </span>
-            <nav className="hidden sm:flex gap-8 text-[11px] font-bold tracking-widest text-zinc-500">
-              <button
-                onClick={() => setActiveTab("markets")}
-                className={`hover:text-white transition-colors ${activeTab === "markets" ? "text-white" : "text-zinc-500"}`}
-              >
-                MARKETS
-              </button>
-
-              <a href="#" className="hover:text-white transition-colors">
-                ANALYTICS
-              </a>
-
-              <button
-                onClick={() => setActiveTab("portfolio")}
-                className={`hover:text-white transition-colors ${activeTab === "portfolio" ? "text-white" : "text-zinc-500"}`}
-              >
-                PORTFOLIO
-              </button>
-            </nav>
-            <button className="px-4 py-2 text-[10px] font-black bg-white text-black hover:bg-zinc-200 transition-all">
-              CONNECT WALLET
+      <header className="fixed top-0 left-0 w-full z-50 border-b border-white/[0.08] bg-black/60 backdrop-blur-xl">
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+          <span className="font-bold tracking-widest text-white text-2xl">
+            [OMNISIGHT]
+          </span>
+          <nav className="hidden sm:flex gap-8 text-sm font-bold tracking-widest text-zinc-500">
+            <button
+              onClick={() => setActiveTab("markets")}
+              className={`hover:text-white transition-colors ${activeTab === "markets" ? "text-white" : "text-zinc-500"}`}
+            >
+              MARKETS
             </button>
-          </div>
-        </header>
 
-        <main className="flex-1 max-w-5xl mx-auto w-full pt-20 px-6 pb-20">
+            <a href="#" className="hover:text-white transition-colors">
+              ANALYTICS
+            </a>
+
+            <button
+              onClick={() => setActiveTab("portfolio")}
+              className={`hover:text-white transition-colors ${activeTab === "portfolio" ? "text-white" : "text-zinc-500"}`}
+            >
+              PORTFOLIO
+            </button>
+          </nav>
+          <button className="px-4 py-2 text-xs font-black bg-white text-black hover:bg-zinc-200 transition-all">
+            CONNECT WALLET
+          </button>
+        </div>
+      </header>
+
+      <div className="relative z-10 animate-reveal flex flex-col min-h-screen">
+        <main className="flex-1 max-w-5xl mx-auto w-full pt-36 px-6 pb-20">
           {activeTab === "markets" && (
             <>
               <div className="mb-10 flex flex-col gap-2">
-                <div className="text-[11px] font-mono text-zinc-600 tracking-widest">
+                <div className="text-xs font-mono text-zinc-600 tracking-widest">
                   LAST SYNC: {currentTime.toLocaleDateString()}{" "}
                   {currentTime.toLocaleTimeString()}
                 </div>
@@ -174,7 +175,7 @@ function App() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </div>
-                  <h2 className="text-[11px] font-black uppercase tracking-[0.4em] text-white/40">
+                  <h2 className="text-sm font-black uppercase tracking-[0.4em] text-white/40">
                     Market Overview
                   </h2>
                   <div className="h-[1px] flex-1 bg-gradient-to-r from-white/10 to-transparent" />
@@ -183,7 +184,7 @@ function App() {
                 <div className="border border-white/[0.05] bg-white/[0.01] backdrop-blur-sm overflow-hidden">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-white/[0.05] bg-white/[0.02] text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                      <tr className="border-b border-white/[0.05] bg-white/[0.02] text-xs font-bold uppercase tracking-widest text-zinc-500">
                         <th className="px-6 py-4">Asset</th>
                         <th className="px-6 py-4 text-right">Price</th>
                         <th className="px-6 py-4 text-right hidden sm:table-cell">
@@ -197,7 +198,7 @@ function App() {
                         <tr>
                           <td
                             colSpan={5}
-                            className="py-20 text-center font-mono text-[10px] tracking-widest"
+                            className="py-20 text-center font-mono text-xs tracking-widest"
                           >
                             SYNCING...
                           </td>
@@ -206,7 +207,7 @@ function App() {
                         <tr>
                           <td
                             colSpan={5}
-                            className="py-20 text-center text-red-500/50 font-mono text-[10px]"
+                            className="py-20 text-center text-red-500/50 font-mono text-xs"
                           >
                             {error}
                           </td>
@@ -233,7 +234,7 @@ function App() {
                                   <span className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">
                                     {coin.name}
                                   </span>
-                                  <span className="text-[10px] font-mono text-zinc-600">
+                                  <span className="text-xs font-mono text-zinc-600">
                                     {coin.symbol.toUpperCase()}
                                   </span>
                                 </div>
@@ -250,13 +251,13 @@ function App() {
                                   %)
                                 </span>
                               </td>
-                              <td className="px-6 py-4 text-right font-mono text-[11px] text-zinc-500 hidden sm:table-cell">
+                              <td className="px-6 py-4 text-right font-mono text-sm text-zinc-500 hidden sm:table-cell">
                                 {formatMarketCap(coin.market_cap)}
                               </td>
                               <td className="px-6 py-4 text-right">
                                 <svg
-                                  className="inline-block w-20 h-7"
-                                  viewBox="0 0 100 20"
+                                  className="inline-block w-24 h-10"
+                                  viewBox="0 0 100 40"
                                   preserveAspectRatio="none"
                                 >
                                   <SparklinePath
@@ -284,7 +285,7 @@ function App() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                 </div>
-                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">
+                <h2 className="text-xs font-black uppercase tracking-[0.4em] text-white/40">
                   Your Portfolio
                 </h2>
                 <div className="h-[1px] flex-1 bg-gradient-to-r from-white/10 to-transparent" />
@@ -293,7 +294,7 @@ function App() {
               <div className="border border-white/[0.05] bg-white/[0.01] backdrop-blur-sm overflow-hidden">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-white/[0.05] bg-white/[0.02] text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                    <tr className="border-b border-white/[0.05] bg-white/[0.02] text-xs font-bold uppercase tracking-widest text-zinc-500">
                       <th className="px-6 py-4">Asset</th>
                       <th className="px-6 py-4 text-right">Holdings</th>
                       <th className="px-6 py-4 text-right">Value</th>
@@ -307,10 +308,8 @@ function App() {
                         (m) => m.id === position.coinId,
                       );
 
-                      // 2. Защита от пустоты
                       if (!actualCoin) return null;
 
-                      // 3. Твоя математика
                       const currentValue =
                         actualCoin.current_price * position.amount;
                       const profitLoss =
@@ -328,7 +327,7 @@ function App() {
                               <span className="text-sm font-bold text-white">
                                 {actualCoin.name}
                               </span>
-                              <span className="text-[10px] font-mono text-zinc-600">
+                              <span className="text-xs font-mono text-zinc-600">
                                 {actualCoin.symbol.toUpperCase()}
                               </span>
                             </div>
