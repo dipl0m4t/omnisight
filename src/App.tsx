@@ -82,13 +82,49 @@ function formatMarketCap(v: number) {
   return `$${(v / 1e6).toFixed(1)}M`;
 }
 
+// Изолируем часы
+const LiveClock = () => {
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  return (
+    <span className="pt-20">
+      LAST SYNC: {time.toLocaleDateString()} {time.toLocaleTimeString()}
+    </span>
+  );
+};
+
 function App() {
   const [markets, setMarkets] = useState<MarketRow[]>([]);
   const [activeTab, setActiveTab] = useState("markets");
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
+
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Оптимизированный слушатель скролла
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScroll = window.scrollY;
+          setIsScrolled((prev) => {
+            if (currentScroll > 80 && !prev) return true;
+            if (currentScroll < 80 && prev) return false;
+            return prev;
+          });
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -117,11 +153,6 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
   const tableHeaderClass = `border-b border-zinc-100 dark:border-white/[0.05] bg-zinc-50/50 dark:bg-white/[0.02] text-xs font-bold uppercase tracking-[0.2em] py-4 px-6 text-zinc-600 dark:text-zinc-500`;
   const tableCellClass = "px-6 py-5 transition-colors";
 
@@ -133,76 +164,104 @@ function App() {
         <BackgroundGeometry theme={theme} />
       </div>
 
-      <header
-        className={`fixed top-6 inset-x-0 mx-auto w-[calc(100%-4rem)] max-w-5xl z-50 thick-glass refractive-distortion transition-colors duration-300 rounded-[48px] border animate-header-reveal
-        ${
-          theme === "dark"
-            ? "border-white/[0.08] bg-white/[0.02] shadow-[0_15px_40px_rgba(0,0,0,0.5)]"
-            : "border-zinc-300 bg-white/90 shadow-[0_20px_60px_rgba(0,0,0,0.12)]"
-        }`}
-      >
-        <div className="w-full px-10 py-5 flex items-center justify-between">
-          <Logo />
+      <div className="sticky top-0 z-[100] w-full h-0 pointer-events-none">
+        <div
+          className={`w-full flex justify-center px-4 sm:px-8 transition-all duration-500 ${isScrolled ? "pt-3" : "pt-6"}`}
+        >
+          <header
+            className={`pointer-events-auto thick-glass refractive-distortion transition-all duration-500 border w-full
+            ${
+              isScrolled
+                ? "max-w-5xl rounded-[28px]"
+                : "max-w-7xl rounded-[40px]"
+            }
+            ${
+              theme === "dark"
+                ? "border-white/[0.08] bg-white/[0.02] shadow-[0_15px_40px_rgba(0,0,0,0.5)]"
+                : "border-zinc-300 bg-white/90 shadow-[0_20px_60px_rgba(0,0,0,0.12)]"
+            }`}
+          >
+            <div
+              className={`w-full flex items-center justify-between transition-all duration-500 ${isScrolled ? "px-6 py-2.5" : "px-10 py-4"}`}
+            >
+              {/* Логотип: Уменьшается и прилипает к левому краю */}
+              <div
+                className={`transition-transform duration-500 origin-left ${isScrolled ? "scale-[0.85]" : "scale-100"}`}
+              >
+                <Logo />
+              </div>
 
-          <nav className="hidden sm:flex gap-8 text-[12.5px] font-black tracking-[0.3em] text-zinc-600 dark:text-zinc-500 uppercase">
-            <button
-              onClick={() => setActiveTab("markets")}
-              className={`hover:text-black dark:hover:text-white transition-all cursor-pointer ${activeTab === "markets" ? "text-black dark:text-white" : ""}`}
-            >
-              MARKETS
-            </button>
-            <a
-              href="#"
-              className="hover:text-black dark:hover:text-white transition-all"
-            >
-              ANALYTICS
-            </a>
-            <button
-              onClick={() => setActiveTab("portfolio")}
-              className={`hover:text-black dark:hover:text-white transition-all cursor-pointer ${activeTab === "portfolio" ? "text-black dark:text-white" : ""}`}
-            >
-              PORTFOLIO
-            </button>
-          </nav>
+              {/* Навигация: Уменьшается по центру */}
+              <nav
+                className={`hidden sm:flex gap-8 text-[14px] font-black tracking-[0.3em] text-zinc-600 dark:text-zinc-500 uppercase transition-transform duration-500 origin-center ${isScrolled ? "scale-[0.85]" : "scale-100"}`}
+              >
+                <button
+                  onClick={() => setActiveTab("markets")}
+                  className={`hover:text-black dark:hover:text-white transition-all cursor-pointer ${activeTab === "markets" ? "text-black dark:text-white" : ""}`}
+                >
+                  MARKETS
+                </button>
+                <a
+                  href="#"
+                  className="hover:text-black dark:hover:text-white transition-all"
+                >
+                  ANALYTICS
+                </a>
+                <button
+                  onClick={() => setActiveTab("portfolio")}
+                  className={`hover:text-black dark:hover:text-white transition-all cursor-pointer ${activeTab === "portfolio" ? "text-black dark:text-white" : ""}`}
+                >
+                  PORTFOLIO
+                </button>
+              </nav>
 
-          <div className="flex items-center gap-6">
-            <ThemeToggle />
-            <button
-              className={`px-6 py-2 text-sm font-black transition-all thick-glass refractive-distortion border tracking-widest uppercase shadow-lg active:scale-95
-              ${
-                theme === "dark"
-                  ? "border-white/[0.15] bg-white/[0.05] text-white hover:bg-white/[0.1] rounded-4xl"
-                  : "border-zinc-300 bg-white/80 text-black hover:bg-zinc-100 rounded-4xl"
-              }`}
-            >
-              [CONNECT WALLET]
-            </button>
-          </div>
+              {/* Кнопки: Уменьшаются и прилипают к правому краю */}
+              <div
+                className={`flex items-center gap-6 transition-transform duration-500 origin-right ${isScrolled ? "scale-[0.85]" : "scale-100"}`}
+              >
+                <ThemeToggle />
+                <button
+                  className={`px-6 py-3.5 text-sm font-black transition-all thick-glass refractive-distortion border tracking-widest uppercase shadow-lg active:scale-95
+                  ${
+                    theme === "dark"
+                      ? "border-white/[0.15] bg-white/[0.05] text-white hover:bg-white/[0.1] rounded-4xl"
+                      : "border-zinc-300 bg-white/80 text-black hover:bg-zinc-100 rounded-4xl"
+                  }`}
+                >
+                  [ CONNECT WALLET ]
+                </button>
+              </div>
+            </div>
+          </header>
         </div>
-      </header>
+      </div>
 
-      <main className="relative z-10 max-w-5xl mx-auto w-full pt-16 px-6 pb-20">
-        <div className="mb-10 flex flex-col gap-3">
-          <div className="text-xs font-mono font-black text-zinc-700 dark:text-zinc-500 tracking-widest uppercase flex justify-between">
-            <span>
-              LAST SYNC: {currentTime.toLocaleDateString()}{" "}
-              {currentTime.toLocaleTimeString()}
-            </span>
+      <main className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-8 pt-[120px] pb-20">
+        {/* ВОЗВРАЩАЕМ СТАРЫЙ ДИЗАЙН, НО С "АУРОЙ" */}
+        <div className="relative mb-10 flex flex-col gap-3">
+          {/* Секретное оружие: локальный туман (aura). Он размывает геометрию только под текстом */}
+          <div
+            className={`absolute -inset-y-6 -inset-x-10 z-0 blur-3xl transition-colors duration-500 pointer-events-none rounded-full
+            ${theme === "dark" ? "bg-black/70" : "bg-white/80"}`}
+          ></div>
+
+          <div className="relative z-10 text-xs font-mono font-black text-zinc-700 dark:text-zinc-500 tracking-widest uppercase flex justify-between">
+            <LiveClock />
             {error && (
               <span className="text-red-500 font-bold animate-pulse">
                 {error}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-5">
-            <div className="relative flex h-2 w-2">
+          <div className="relative z-10 flex items-center gap-5">
+            <div className="relative flex h-2 w-2 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </div>
-            <h2 className="text-sm font-black uppercase tracking-[0.4em] text-zinc-600 dark:text-zinc-400">
+            <h2 className="text-sm font-black uppercase tracking-[0.4em] text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
               {activeTab === "markets" ? "Market Overview" : "Your Portfolio"}
             </h2>
-            <div className="h-[1px] flex-1 bg-zinc-300 dark:bg-white/10" />
+            <div className="h-[1px] w-full bg-zinc-300 dark:bg-white/10" />
           </div>
         </div>
 
@@ -219,14 +278,14 @@ function App() {
               <tr>
                 <th className={tableHeaderClass}>Asset</th>
                 <th className={`${tableHeaderClass} text-right`}>
-                  {activeTab === "markets" ? "Price / 24h Change" : "Holdings"}
+                  {activeTab === "markets" ? "Price / 24H Change" : "Holdings"}
                 </th>
                 <th
                   className={`${tableHeaderClass} text-right hidden sm:table-cell`}
                 >
                   {activeTab === "markets" ? "Market Cap" : "Value"}
                 </th>
-                <th className={`${tableHeaderClass} text-right`}>
+                <th className={`${tableHeaderClass} text-center`}>
                   {activeTab === "markets" ? "Trend (7d)" : "Profit/Loss"}
                 </th>
               </tr>
@@ -280,21 +339,23 @@ function App() {
                         </div>
                       </td>
                       <td
-                        className={`${tableCellClass} text-right text-sm font-medium text-zinc-500 hidden sm:table-cell tracking-wide`}
+                        className={`${tableCellClass} text-right text-sm font-extrabold text-zinc-700 dark:text-zinc-500 sm:table-cell tracking-wide`}
                       >
                         {formatMarketCap(coin.market_cap)}
                       </td>
-                      <td className={`${tableCellClass} text-right`}>
-                        <svg
-                          className="inline-block w-20 h-9"
-                          viewBox="0 0 100 40"
-                          preserveAspectRatio="none"
-                        >
-                          <SparklinePath
-                            d={generateSparklinePath(sparkline)}
-                            color={is7dNeg ? "#ef4444" : "#10b981"}
-                          />
-                        </svg>
+                      <td className={tableCellClass}>
+                        <div className="flex justify-center">
+                          <svg
+                            className="w-44 h-12"
+                            viewBox="0 0 100 40"
+                            preserveAspectRatio="none"
+                          >
+                            <SparklinePath
+                              d={generateSparklinePath(sparkline)}
+                              color={is7dNeg ? "#ef4444" : "#10b981"}
+                            />
+                          </svg>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -335,7 +396,7 @@ function App() {
                         })}
                       </td>
                       <td
-                        className={`px-6 py-5 text-right text-base font-black ${isProfit ? "text-emerald-500" : "text-red-500"}`}
+                        className={`px-6 py-5 text-center text-base font-black ${isProfit ? "text-emerald-500" : "text-red-500"}`}
                       >
                         {isProfit ? "+" : "-"}$
                         {Math.abs(pl).toLocaleString("en-US", {
@@ -359,7 +420,7 @@ function App() {
             : "border-zinc-200 bg-white/80 text-zinc-600 backdrop-blur-md"
         }`}
       >
-        <div className="max-w-5xl mx-auto px-10 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex justify-between items-center w-full">
           <span>© {new Date().getFullYear()} OMNISIGHT_TERMINAL</span>
           <span className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
