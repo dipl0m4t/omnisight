@@ -181,3 +181,19 @@ body {
     clip-path: circle(0px at var(--click-x) var(--click-y));
   }
 }
+
+@keyframes star-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(250, 204, 21, 0.4));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(250, 204, 21, 0.8));
+    transform: scale(1.05);
+  }
+}
+
+.animate-star-glow {
+  animation: star-glow 3s ease-in-out infinite;
+}
