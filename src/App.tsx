@@ -59,6 +59,7 @@ type MarketRow = {
   symbol: string;
   current_price: number;
   market_cap: number;
+  market_cap_rank: number;
   price_change_percentage_24h: number | null;
   sparkline_in_7d?: { price: number[] };
 };
@@ -274,6 +275,13 @@ function App() {
   // [EN] Grab exactly 10 coins for the current view.
   // [RU] Берем ровно 10 монет для текущего отображения.
   const currentCoins = filteredMarkets.slice(startIndex, endIndex);
+
+  // ДОБАВЛЯЕМ: Нарезаем 10 монет для Your Portfolio
+  const currentPortfolio = filteredPortfolio.slice(startIndex, endIndex);
+
+  // ДОБАВЛЯЕМ: Считаем общее количество элементов в зависимости от текущей вкладки
+  const totalItems =
+    activeTab === "markets" ? filteredMarkets.length : filteredPortfolio.length;
 
   // [EN] Toggles an ID inside the favorites array.
   // [RU] Переключает наличие ID внутри массива избранного.
@@ -555,6 +563,15 @@ function App() {
                         </td>
                         <td className={tableCellClass}>
                           <div className="flex items-center gap-3">
+                            {coin.market_cap_rank <= 10 ? (
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20 tracking-widest whitespace-nowrap">
+                                TOP-{coin.market_cap_rank}
+                              </span>
+                            ) : (
+                              <span className="text-xs font-mono font-bold text-zinc-400 dark:text-zinc-600 w-8 text-center">
+                                {coin.market_cap_rank}
+                              </span>
+                            )}
                             <span className="text-lg font-black text-zinc-950 dark:text-zinc-100 tracking-wide">
                               {coin.name}
                             </span>
@@ -667,7 +684,7 @@ function App() {
                   </td>
                 </tr>
               ) : (
-                filteredPortfolio.map((pos) => {
+                currentPortfolio.map((pos) => {
                   const coin = markets.find((m) => m.id === pos.coinId);
                   if (!coin) return null;
                   const val = coin.current_price * pos.amount;
@@ -756,11 +773,11 @@ function App() {
             {/* Next Button */}
             <button
               onClick={() => setCurrentPage((prev) => prev + 1)}
-              disabled={endIndex >= filteredMarkets.length}
+              disabled={endIndex >= totalItems}
               className={`px-3.5 py-3.5 text-sm font-black transition-all thick-glass refractive-distortion border tracking-widest uppercase rounded-4xl
                 ${theme === "dark" ? "border-white/[0.15] bg-white/[0.05] text-white" : "border-zinc-300 bg-white/80 text-black"}
                 ${
-                  endIndex >= filteredMarkets.length
+                  endIndex >= totalItems
                     ? "opacity-30 cursor-not-allowed grayscale"
                     : `shadow-lg active:scale-95 cursor-pointer ${theme === "dark" ? "hover:bg-white/[0.1]" : "hover:bg-zinc-100"}`
                 }`}
