@@ -198,3 +198,45 @@ body {
 .animate-star-glow {
   animation: star-glow 3s ease-in-out infinite;
 }
+
+/* ========================================== */
+/* КАСТОМНЫЙ СКРОЛЛБАР ДЛЯ ВСЕГО САЙТА       */
+/* ========================================== */
+
+/* Ширина и высота ползунка */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+/* Фон под ползунком (делаем прозрачным) */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Сам ползунок */
+::-webkit-scrollbar-thumb {
+  background: rgba(161, 161, 170, 0.3); /* Полупрозрачный серый (zinc-400) */
+  border-radius: 10px;
+}
+
+/* Ползунок при наведении мыши */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.8); /* Фирменный изумрудный (emerald-500) */
+}
+
+/* ========================================== */
+/* УБИРАЕМ СТРЕЛОЧКИ У INPUT TYPE="NUMBER"    */
+/* ========================================== */
+
+/* Для Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Для Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}

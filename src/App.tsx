@@ -24,20 +24,24 @@ const SparklinePath = ({ d, color }: { d: string; color?: string }) => {
     const path = pathRef.current;
     if (!path) return;
 
-    // 1. Измеряем реальную длину конкретной кривой (хоть 100, хоть 1500 пикселей)
+    // 1. Измеряем реальную длину кривой
     const length = path.getTotalLength();
 
-    // 2. Мгновенно "прячем" линию, выключая анимацию
+    // 2. Мгновенно "прячем" линию
     path.style.transition = "none";
     path.style.strokeDasharray = `${length}`;
     path.style.strokeDashoffset = `${length}`;
 
-    // 3. Форсируем перерасчет кадра в браузере (это хак, чтобы анимация перезапустилась)
-    path.getBoundingClientRect();
-
-    // 4. Включаем плавную анимацию и рисуем линию
-    path.style.transition = "stroke-dashoffset 1s ease-in-out";
-    path.style.strokeDashoffset = "0";
+    // 3. ЖДЕМ ОДИН КАДР (Бронебойный хак для браузера)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (path) {
+          // 4. Включаем плавную анимацию
+          path.style.transition = "stroke-dashoffset 1s ease-in-out";
+          path.style.strokeDashoffset = "0";
+        }
+      });
+    });
   }, [d]);
 
   return (
@@ -151,6 +155,34 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
+  // [RU] Состояния для добавления актива
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newAsset, setNewAsset] = useState({
+    coinId: "",
+    amount: "",
+    buyPrice: "",
+  });
+
+  // [RU] Состояния для окна РЕДАКТИРОВАНИЯ актива
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingAsset, setEditingAsset] = useState<{
+    id: number;
+    coinId: string;
+    amount: string;
+    buyPrice: string;
+  } | null>(null);
+
+  // [RU] Состояние для кастомного окна подтверждения удаления
+  const [assetToDelete, setAssetToDelete] = useState<number | null>(null);
+
+  // [RU] Состояния для умного поиска
+  const [modalSearchQuery, setModalSearchQuery] = useState("");
+  const [selectedCoinName, setSelectedCoinName] = useState("");
+  const [searchResults, setSearchResults] = useState<
+    { id: string; name: string; symbol: string; thumb: string }[]
+  >([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   // ==========================================
   // 2. EFFECTS & LIFECYCLES (ЭФФЕКТЫ И ЖИЗНЕННЫЙ ЦИКЛ)
   // ==========================================
@@ -232,6 +264,31 @@ function App() {
     fetchPortfolio();
   }, []);
 
+  // [RU] Фоновый поиск монет для модалки (с задержкой 500мс, чтобы не спамить API)
+  useEffect(() => {
+    if (modalSearchQuery.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(
+          `https://api.coingecko.com/api/v3/search?query=${modalSearchQuery}`,
+        );
+        const data = await res.json();
+        setSearchResults(data.coins ? data.coins.slice(0, 5) : []); // Берем топ-5 совпадений
+      } catch (error) {
+        console.error("Ошибка поиска монеты:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [modalSearchQuery]);
+
   const tableHeaderClass = `border-b border-zinc-100 dark:border-white/[0.05] bg-zinc-50/50 dark:bg-white/[0.02] text-xs font-bold uppercase tracking-[0.2em] py-4 px-6 text-zinc-600 dark:text-zinc-500`;
   const tableFooterClass = `border-t border-zinc-100 dark:border-white/[0.05] bg-zinc-50/50 dark:bg-white/[0.02] py-4 px-6 flex justify-end items-center gap-3 rounded-b-xl`;
   const tableCellClass = "px-6 py-5 transition-colors";
@@ -289,6 +346,99 @@ function App() {
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
+  };
+
+  // [RU] Функция сохранения актива в базу данных
+  const handleAddAsset = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const res = await fetch("http://localhost:3001/api/portfolio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          coinId: newAsset.coinId,
+          amount: Number(newAsset.amount),
+          buyPrice: Number(newAsset.buyPrice),
+        }),
+      });
+
+      if (!res.ok) throw new Error("Ошибка при сохранении в БД");
+
+      const addedItem = await res.json();
+
+      // Добавляем новую монету в таблицу без перезагрузки страницы
+      setPortfolio((prev) => [...prev, addedItem]);
+
+      // Закрываем окно и всё очищаем
+      setIsAddModalOpen(false);
+      setNewAsset({ coinId: "", amount: "", buyPrice: "" });
+      setModalSearchQuery("");
+      setSelectedCoinName("");
+      setSearchResults([]);
+    } catch (error) {
+      console.error("Не удалось добавить актив:", error);
+    }
+  };
+
+  // [RU] Функция сохранения ИЗМЕНЕНИЙ актива
+  const handleUpdateAsset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAsset) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:3001/api/portfolio/${editingAsset.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: Number(editingAsset.amount),
+            buyPrice: Number(editingAsset.buyPrice),
+          }),
+        },
+      );
+
+      if (!res.ok) throw new Error("Ошибка при обновлении в БД");
+
+      const updatedItem = await res.json();
+
+      // Мгновенно обновляем монету в таблице (находим старую по ID и заменяем на новую)
+      setPortfolio((prev) =>
+        prev.map((item) => (item.id === updatedItem.id ? updatedItem : item)),
+      );
+
+      // Закрываем модалку и сбрасываем стейт
+      setIsEditModalOpen(false);
+      setEditingAsset(null);
+    } catch (error) {
+      console.error("SYNC_ERROR: Не удалось обновить актив", error);
+    }
+  };
+
+  // [RU] Функция реального удаления (срабатывает по кнопке в кастомной модалке)
+  const confirmDeleteAsset = async () => {
+    if (assetToDelete === null) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:3001/api/portfolio/${assetToDelete}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!res.ok) throw new Error("Ошибка при удалении из БД");
+
+      // Убираем монету из UI
+      setPortfolio((prev) => prev.filter((item) => item.id !== assetToDelete));
+
+      // Закрываем модалку
+      setAssetToDelete(null);
+    } catch (error) {
+      console.error("SYNC_ERROR: Не удалось удалить актив", error);
+      alert("Не удалось удалить актив. Проверь консоль сервера.");
+    }
   };
 
   // ==========================================
@@ -385,6 +535,14 @@ function App() {
               <h2 className="text-sm font-black uppercase tracking-[0.4em] text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
                 {activeTab === "markets" ? "Market Overview" : "Your Portfolio"}
               </h2>
+              {activeTab === "portfolio" && (
+                <button
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-500 border border-emerald-500/30 rounded-full hover:bg-emerald-500/10 transition-colors cursor-pointer shadow-lg active:scale-95"
+                >
+                  + Add Asset
+                </button>
+              )}
             </div>
 
             {/* [EN] Decorative line. 'flex-1' pushes the search bar to the right. */}
@@ -494,6 +652,7 @@ function App() {
                 <th className={`${tableHeaderClass} w-44 text-right`}>
                   {activeTab === "markets" ? "Price / 24H Change" : "Holdings"}
                 </th>
+                {/* [RU] Кнопка появляется только во вкладке Портфель */}
                 <th
                   className={`${tableHeaderClass} text-right w-44 hidden sm:table-cell`}
                 >
@@ -502,10 +661,17 @@ function App() {
                 <th className={`${tableHeaderClass} text-right w-52`}>
                   {activeTab === "markets" ? "Trend (7d)" : "Profit/Loss"}
                 </th>
+                {/* [RU] ДОБАВЛЯЕМ: Пустая колонка для кнопок управления (показываем только в портфеле) */}
+                {activeTab === "portfolio" && (
+                  <th className="px-4 py-4 w-16"></th>
+                )}
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-zinc-100 dark:divide-white/[0.03]">
+            <tbody
+              key={`${activeTab}-${showFavoritesOnly}`}
+              className="divide-y divide-zinc-100 dark:divide-white/[0.03]"
+            >
               {loading ? (
                 <tr>
                   <td
@@ -694,7 +860,7 @@ function App() {
                   return (
                     <tr
                       key={pos.id}
-                      className="group hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors font-mono"
+                      className="group hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors font-mono group"
                     >
                       <td className={tableCellClass}>
                         <div className="flex items-center gap-3">
@@ -726,6 +892,64 @@ function App() {
                         {Math.abs(pl).toLocaleString("en-US", {
                           minimumFractionDigits: 2,
                         })}
+                      </td>
+                      {/* ================= КНОПКИ РЕДАКТИРОВАНИЯ И УДАЛЕНИЯ ================= */}
+                      <td className="px-4 py-4 text-right align-middle">
+                        {/* Кнопки скрыты (opacity-0), но появляются при наведении на строку (group-hover:opacity-100) */}
+                        <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          {/* Кнопка: Редактировать */}
+                          <button
+                            onClick={() => {
+                              // Заполняем стейт текущими данными из строки таблицы
+                              setEditingAsset({
+                                id: pos.id,
+                                coinId: coin.name, // Для красоты будем показывать имя монеты в модалке
+                                amount: String(pos.amount),
+                                buyPrice: String(pos.buyPrice),
+                              });
+                              setIsEditModalOpen(true);
+                            }}
+                            className="text-zinc-400 hover:text-emerald-500 transition-colors cursor-pointer"
+                            title="Edit Asset"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                          </button>
+
+                          {/* Кнопка: Удалить */}
+                          <button
+                            onClick={() => setAssetToDelete(pos.id)}
+                            className="text-zinc-400 hover:text-red-500 transition-colors cursor-pointer"
+                            title="Delete Asset"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <polyline points="3 6 5 6 21 6"></polyline>
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -800,6 +1024,319 @@ function App() {
             </button>
           </div>
         </div>
+        {/* ================= MODAL: ADD ASSET ================= */}
+        {isAddModalOpen && (
+          <div
+            // 1. ИСПРАВЛЕНИЕ: Ставим z-[9999], чтобы гарантированно перекрыть вообще всё (хедер, футер, графики)
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md px-4"
+            onClick={() => {
+              setIsAddModalOpen(false);
+              setModalSearchQuery("");
+              setSelectedCoinName("");
+              setSearchResults([]);
+            }}
+          >
+            <div
+              className={`w-full max-w-md p-8 rounded-[32px] border thick-glass refractive-distortion shadow-2xl animate-content-reveal
+                ${theme === "dark" ? "bg-zinc-900/95 border-white/[0.1]" : "bg-white/95 border-zinc-200"}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-xl font-black uppercase tracking-widest mb-6 text-center text-zinc-900 dark:text-white">
+                Add New Asset
+              </h3>
+
+              <form
+                onSubmit={handleAddAsset}
+                className="flex flex-col gap-5 font-mono"
+              >
+                {/* 1. Умный поиск монеты */}
+                <div className="flex flex-col gap-2 relative">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                    Search Asset
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Type coin name (e.g. Pepe)..."
+                    value={selectedCoinName || modalSearchQuery}
+                    onChange={(e) => {
+                      setSelectedCoinName("");
+                      setNewAsset({ ...newAsset, coinId: "" });
+                      setModalSearchQuery(e.target.value);
+                    }}
+                    className={`w-full p-4 rounded-2xl border outline-none transition-colors font-bold
+                      ${theme === "dark" ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50" : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"}`}
+                  />
+
+                  {/* Всплывающее меню результатов */}
+                  {!selectedCoinName && modalSearchQuery.length >= 2 && (
+                    // 2. ИСПРАВЛЕНИЕ: Заменили top-[85px] на top-full и mt-2.
+                    // Теперь список всегда прилипает ровно к низу инпута.
+                    // Убрали прозрачность, сделав фон плотным (bg-zinc-900), чтобы нижние поля не просвечивали!
+                    <div
+                      className={`absolute top-full mt-2 left-0 right-0 z-[300] rounded-xl border overflow-hidden shadow-2xl
+                      ${theme === "dark" ? "bg-zinc-900 border-zinc-700" : "bg-white border-zinc-200"}`}
+                    >
+                      {isSearching ? (
+                        <div className="p-4 text-center text-xs text-zinc-500 font-mono animate-pulse">
+                          Searching global registry...
+                        </div>
+                      ) : searchResults.length > 0 ? (
+                        <ul className="max-h-48 overflow-y-auto">
+                          {searchResults.map((coin) => (
+                            <li
+                              key={coin.id}
+                              onClick={() => {
+                                setNewAsset({ ...newAsset, coinId: coin.id });
+                                setSelectedCoinName(
+                                  `${coin.name} (${coin.symbol.toUpperCase()})`,
+                                );
+                                setModalSearchQuery("");
+                                setSearchResults([]);
+                              }}
+                              className="p-3 border-b border-zinc-200 dark:border-white/5 hover:bg-zinc-800 dark:hover:bg-white/10 cursor-pointer flex items-center gap-4 transition-colors"
+                            >
+                              <img
+                                src={coin.thumb}
+                                alt={coin.name}
+                                className="w-7 h-7 rounded-full bg-zinc-800"
+                              />
+                              <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                                {coin.name}
+                              </span>
+                              <span className="text-[10px] font-black tracking-widest text-zinc-500">
+                                {coin.symbol.toUpperCase()}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="p-4 text-center text-xs text-zinc-500 font-mono bg-zinc-900/50">
+                          No assets found
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Количество */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                    Amount (Holdings)
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    min="0"
+                    required
+                    placeholder="0.00"
+                    value={newAsset.amount}
+                    onChange={(e) =>
+                      setNewAsset({ ...newAsset, amount: e.target.value })
+                    }
+                    className={`w-full p-4 rounded-2xl border outline-none transition-colors font-bold
+                      ${theme === "dark" ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50" : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"}`}
+                  />
+                </div>
+
+                {/* 3. Цена покупки */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                    Buy Price (USD)
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    min="0"
+                    required
+                    placeholder="0.00"
+                    value={newAsset.buyPrice}
+                    onChange={(e) =>
+                      setNewAsset({ ...newAsset, buyPrice: e.target.value })
+                    }
+                    className={`w-full p-4 rounded-2xl border outline-none transition-colors font-bold
+                      ${theme === "dark" ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50" : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"}`}
+                  />
+                </div>
+
+                {/* 4. Кнопки управления */}
+                <div className="flex gap-4 mt-4 pt-4 border-t border-zinc-200 dark:border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddModalOpen(false);
+                      setModalSearchQuery("");
+                      setSelectedCoinName("");
+                      setSearchResults([]);
+                    }}
+                    className="flex-1 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-zinc-500 hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-4 rounded-2xl text-xs font-black uppercase tracking-widest bg-emerald-500 text-black hover:bg-emerald-400 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all cursor-pointer"
+                  >
+                    Save Asset
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ================= MODAL: EDIT ASSET ================= */}
+        {isEditModalOpen && editingAsset && (
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md px-4"
+            onClick={() => {
+              setIsEditModalOpen(false);
+              setEditingAsset(null);
+            }}
+          >
+            <div
+              className={`w-full max-w-md p-8 rounded-[32px] border thick-glass refractive-distortion shadow-2xl animate-content-reveal
+                ${theme === "dark" ? "bg-zinc-900/95 border-emerald-500/20" : "bg-white/95 border-emerald-500/20"}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-xl font-black uppercase tracking-widest mb-1 text-center text-zinc-900 dark:text-white">
+                Edit Asset
+              </h3>
+              <p className="text-center text-emerald-500 font-bold tracking-widest mb-6">
+                {editingAsset.coinId}
+              </p>
+
+              <form
+                onSubmit={handleUpdateAsset}
+                className="flex flex-col gap-5 font-mono"
+              >
+                {/* Изменение Количества */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                    Amount (Holdings)
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    min="0"
+                    required
+                    value={editingAsset.amount}
+                    onChange={(e) =>
+                      setEditingAsset({
+                        ...editingAsset,
+                        amount: e.target.value,
+                      })
+                    }
+                    className={`w-full p-4 rounded-2xl border outline-none transition-colors font-bold
+                      ${theme === "dark" ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50" : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"}`}
+                  />
+                </div>
+
+                {/* Изменение Цены покупки */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                    Buy Price (USD)
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    min="0"
+                    required
+                    value={editingAsset.buyPrice}
+                    onChange={(e) =>
+                      setEditingAsset({
+                        ...editingAsset,
+                        buyPrice: e.target.value,
+                      })
+                    }
+                    className={`w-full p-4 rounded-2xl border outline-none transition-colors font-bold
+                      ${theme === "dark" ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50" : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"}`}
+                  />
+                </div>
+
+                {/* Кнопки */}
+                <div className="flex gap-4 mt-4 pt-4 border-t border-zinc-200 dark:border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditModalOpen(false);
+                      setEditingAsset(null);
+                    }}
+                    className="flex-1 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-zinc-500 hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-4 rounded-2xl text-xs font-black uppercase tracking-widest bg-emerald-500 text-black hover:bg-emerald-400 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all cursor-pointer"
+                  >
+                    Update
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ================= MODAL: CONFIRM DELETE ================= */}
+        {assetToDelete !== null && (
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md px-4"
+            onClick={() => setAssetToDelete(null)}
+          >
+            <div
+              className={`w-full max-w-sm p-8 rounded-[32px] border thick-glass refractive-distortion shadow-2xl animate-content-reveal text-center
+                ${theme === "dark" ? "bg-zinc-900/95 border-red-500/20" : "bg-white/95 border-red-500/20"}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Иконка предупреждения */}
+              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 6h18"></path>
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </div>
+
+              <h3 className="text-xl font-black uppercase tracking-widest mb-2 text-zinc-900 dark:text-white">
+                Delete Asset
+              </h3>
+
+              <p className="text-xs font-mono text-zinc-500 dark:text-zinc-400 mb-8">
+                Are you sure you want to remove this asset from your portfolio?
+                This action cannot be undone.
+              </p>
+
+              {/* Кнопки */}
+              <div className="flex gap-4 font-mono">
+                <button
+                  onClick={() => setAssetToDelete(null)}
+                  className="flex-1 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-zinc-500 hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteAsset}
+                  className="flex-1 py-4 rounded-2xl text-xs font-black uppercase tracking-widest bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       <footer
