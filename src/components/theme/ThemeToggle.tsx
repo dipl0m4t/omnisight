@@ -5,43 +5,42 @@ import { flushSync } from "react-dom";
 export const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
 
-  const handleToggle = async (e: React.MouseEvent) => {
-    // Резервный вариант для старых браузеров
+  const handleToggle = async (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!document.startViewTransition) {
       toggleTheme();
       return;
     }
 
-    // 1. Считаем координаты и нужный радиус
-    const x = e.clientX;
-    const y = e.clientY;
+    // 1. Берем размеры и позицию самой кнопки
+    const rect = e.currentTarget.getBoundingClientRect();
+
+    // 2. Вычисляем координаты ИДЕАЛЬНОГО центра кнопки
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+
     const endRadius = Math.hypot(
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y),
     );
 
-    // 2. Передаем координаты в CSS
     document.documentElement.style.setProperty("--click-x", `${x}px`);
     document.documentElement.style.setProperty("--click-y", `${y}px`);
     document.documentElement.style.setProperty("--circle-r", `${endRadius}px`);
 
-    // 3. Если сейчас светлая тема, значит переходим в темную (нужно сужение)
+    // [RU] Если сейчас темная тема, мы переключаемся на светлую -> нужно сужение
     const isSwitchingToDark = theme === "light";
 
-    // Активируем наши CSS правила
     document.documentElement.classList.add("theme-transition");
     if (isSwitchingToDark) {
       document.documentElement.classList.add("shrink");
     }
 
-    // 4. Запускаем смену состояния
     const transition = document.startViewTransition(() => {
       flushSync(() => {
         toggleTheme();
       });
     });
 
-    // 5. Как только анимация завершится — прибираемся за собой
     transition.finished.then(() => {
       document.documentElement.classList.remove("theme-transition", "shrink");
     });

@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  // [RU] В 6-й версии это СНОВА РАБОТАЕТ и это нормально!
+  url      = env("DATABASE_URL")
+}
+
+model PortfolioItem {
+  id        Int      @id @default(autoincrement())
+  coinId    String
+  amount    Float
+  buyPrice  Float
+  createdAt DateTime @default(now())
+}
+
+model Favorite {
+  id     String @id
+}

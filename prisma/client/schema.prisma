@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Таблица активов в портфеле
+model PortfolioItem {
+  id        Int      @id @default(autoincrement())
+  coinId    String // 'bitcoin', 'ethereum' и т.д.
+  amount    Float // сколько у нас монет
+  buyPrice  Float // по какой цене брали
+  createdAt DateTime @default(now())
+}
+
+// Таблица избранных монет
+model Favorite {
+  id String @id // id монеты (например, 'solana')
+}

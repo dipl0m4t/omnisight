@@ -114,7 +114,7 @@ body {
 /* [RU] ОТРИСОВКА ГРАФИКА: Анимирует линии графиков слева направо. */
 @keyframes drawLine {
   0% {
-    stroke-dashoffset: 250;
+    stroke-dashoffset: 300;
   }
   100% {
     stroke-dashoffset: 0;
@@ -122,9 +122,9 @@ body {
 }
 
 .draw-animation {
-  stroke-dasharray: 250;
-  stroke-dashoffset: 250;
-  animation: drawLine 1s ease-in-out forwards;
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: drawLine 0.5s ease-out forwards;
 }
 
 /* ============================================================
@@ -136,16 +136,28 @@ body {
    We use CSS variables (--click-x, --click-y) passed from JavaScript. */
 /* [RU] КРУГОВОЕ ПРОЯВЛЕНИЕ: Создает эффект "расширяющегося круга" при смене темы.
    Мы используем CSS-переменные (--click-x, --click-y), переданные из JavaScript. */
-
 .theme-transition::view-transition-old(root),
 .theme-transition::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
 }
 
-.theme-transition::view-transition-new(root) {
-  animation: reveal-theme 0.35s ease-in-out forwards;
-  z-index: 2;
+/* 1. ЭФФЕКТ РАСКРЫТИЯ (Expand) - если нет класса shrink */
+.theme-transition:not(.shrink)::view-transition-new(root) {
+  animation: reveal-theme 0.4s ease-in-out forwards;
+  z-index: 2; /* Новая тема растет ПОВЕРХ старой */
+}
+.theme-transition:not(.shrink)::view-transition-old(root) {
+  z-index: 1; /* Старая тема спокойно лежит внизу */
+}
+
+/* 2. ЭФФЕКТ СУЖЕНИЯ (Shrink) - если есть класс shrink */
+.theme-transition.shrink::view-transition-old(root) {
+  animation: shrink-theme 0.4s ease-in-out forwards;
+  z-index: 2; /* Старая тема схлопывается ПОВЕРХ новой */
+}
+.theme-transition.shrink::view-transition-new(root) {
+  z-index: 1; /* Новая тема уже ждет внизу */
 }
 
 @keyframes reveal-theme {

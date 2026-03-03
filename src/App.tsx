@@ -7,11 +7,11 @@ import { Logo } from "./components/Logo";
 
 // [EN] MOCK DATA: A static array simulating a database response. Later, Prisma will provide this.
 // [RU] ФЕЙКОВЫЕ ДАННЫЕ: Статичный массив, имитирующий ответ от базы данных. Позже это будет приходить от Prisma.
-const mockPortfolio = [
-  { id: 1, coinId: "bitcoin", amount: 0.5, buyPrice: 60000 },
-  { id: 2, coinId: "ethereum", amount: 5, buyPrice: 2000 },
-  { id: 3, coinId: "solana", amount: 50, buyPrice: 100 },
-];
+// const mockPortfolio = [
+//   { id: 1, coinId: "bitcoin", amount: 0.5, buyPrice: 60000 },
+//   { id: 2, coinId: "ethereum", amount: 5, buyPrice: 2000 },
+//   { id: 3, coinId: "solana", amount: 50, buyPrice: 100 },
+// ];
 
 // [EN] SVG CHART COMPONENT: Uses `useLayoutEffect` to measure the length of the SVG path BEFORE the browser paints it.
 // [EN] This allows us to animate the line drawing from 0 to its full length smoothly.
@@ -19,13 +19,25 @@ const mockPortfolio = [
 // [RU] Это позволяет нам плавно анимировать отрисовку линии от 0 до её полной длины.
 const SparklinePath = ({ d, color }: { d: string; color?: string }) => {
   const pathRef = useRef<SVGPathElement>(null);
-  const [pathLength, setPathLength] = useState(0);
 
   useLayoutEffect(() => {
-    if (pathRef.current && d !== "M 0 20 L 100 20") {
-      const length = pathRef.current.getTotalLength();
-      setPathLength(length);
-    }
+    const path = pathRef.current;
+    if (!path) return;
+
+    // 1. Измеряем реальную длину конкретной кривой (хоть 100, хоть 1500 пикселей)
+    const length = path.getTotalLength();
+
+    // 2. Мгновенно "прячем" линию, выключая анимацию
+    path.style.transition = "none";
+    path.style.strokeDasharray = `${length}`;
+    path.style.strokeDashoffset = `${length}`;
+
+    // 3. Форсируем перерасчет кадра в браузере (это хак, чтобы анимация перезапустилась)
+    path.getBoundingClientRect();
+
+    // 4. Включаем плавную анимацию и рисуем линию
+    path.style.transition = "stroke-dashoffset 1s ease-in-out";
+    path.style.strokeDashoffset = "0";
   }, [d]);
 
   return (
@@ -36,13 +48,7 @@ const SparklinePath = ({ d, color }: { d: string; color?: string }) => {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      style={{
-        stroke: color,
-        opacity: 0.9,
-        strokeDasharray: pathLength || 1000,
-        strokeDashoffset: pathLength ? 0 : 1000,
-        transition: "stroke-dashoffset 2s ease-in-out",
-      }}
+      style={{ stroke: color, opacity: 0.9 }}
     />
   );
 };
@@ -55,6 +61,13 @@ type MarketRow = {
   market_cap: number;
   price_change_percentage_24h: number | null;
   sparkline_in_7d?: { price: number[] };
+};
+
+type PortfolioItem = {
+  id: number;
+  coinId: string;
+  amount: number;
+  buyPrice: number;
 };
 
 // [EN] MATH HELPER: Converts an array of raw prices into X,Y coordinates for the SVG path.
@@ -115,6 +128,7 @@ function App() {
   // ==========================================
 
   const [markets, setMarkets] = useState<MarketRow[]>([]);
+  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [activeTab, setActiveTab] = useState("markets");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -201,6 +215,22 @@ function App() {
     };
   }, []);
 
+  // [EN] FETCH PORTFOLIO FROM DB: Pings our local Express server to get Prisma data.
+  // [RU] ЗАГРУЗКА ПОРТФЕЛЯ: Стучимся на наш локальный сервер за данными из БД.
+  useEffect(() => {
+    async function fetchPortfolio() {
+      try {
+        const res = await fetch("http://localhost:3001/api/portfolio");
+        if (!res.ok) throw new Error("Failed to fetch");
+        const data = await res.json();
+        setPortfolio(data);
+      } catch (error) {
+        console.error("SYNC_ERROR: Не удалось загрузить портфель из БД", error);
+      }
+    }
+    fetchPortfolio();
+  }, []);
+
   const tableHeaderClass = `border-b border-zinc-100 dark:border-white/[0.05] bg-zinc-50/50 dark:bg-white/[0.02] text-xs font-bold uppercase tracking-[0.2em] py-4 px-6 text-zinc-600 dark:text-zinc-500`;
   const tableFooterClass = `border-t border-zinc-100 dark:border-white/[0.05] bg-zinc-50/50 dark:bg-white/[0.02] py-4 px-6 flex justify-end items-center gap-3 rounded-b-xl`;
   const tableCellClass = "px-6 py-5 transition-colors";
@@ -225,7 +255,7 @@ function App() {
     return true;
   });
 
-  const filteredPortfolio = mockPortfolio.filter((pos) => {
+  const filteredPortfolio = portfolio.filter((pos) => {
     if (!searchQuery) return true;
     const coin = markets.find((m) => m.id === pos.coinId);
     if (!coin) return false;
@@ -431,7 +461,7 @@ function App() {
                   }}
                 />
                 <div
-                  className={`w-12 h-6 rounded-full transition-all duration-300 backdrop-blur-xl border thick-glass shadow-inner
+                  className={`w-12 h-6 rounded-full transition-all duration-100 backdrop-blur-xl border thick-glass shadow-inner
                   ${theme === "dark" ? "border-white/[0.15] bg-white/[0.05]" : "border-zinc-300 bg-white/80"}
                   peer-checked:border-yellow-500/50 peer-checked:bg-yellow-500/10`}
                 ></div>
