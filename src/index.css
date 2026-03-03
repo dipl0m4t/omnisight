@@ -1,8 +1,13 @@
 /* src/index.css */
+
+/* [EN] TYPOGRAPHY: Importing professional fonts for the "Terminal" aesthetic. */
+/* [RU] ТИПОГРАФИКА: Импорт профессиональных шрифтов для эстетики "Терминала". */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap");
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* [EN] THEME CONFIG: Defining custom font variables for Tailwind v4. */
+/* [RU] КОНФИГУРАЦИЯ ТЕМЫ: Определение кастомных переменных шрифтов для Tailwind v4. */
 @theme {
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
@@ -15,31 +20,42 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* ============================================================
+   [EN] GLASSMORPHISM SYSTEM (SYSTEMA GLASSMORFIZMA)
+   [RU] СИСТЕМА ГЛАССМОРФИЗМА
+   ============================================================ */
+
+/* [EN] CORE GLASS CLASS: The blur and saturation create the "frosted glass" effect. */
+/* [RU] ОСНОВНОЙ КЛАСС СТЕКЛА: Размытие и насыщенность создают эффект "матового стекла". */
 .thick-glass {
   position: relative;
-  /* Усиливаем размытие для ощущения толщины */
   backdrop-filter: blur(40px) saturate(210%) brightness(1.1);
   -webkit-backdrop-filter: blur(40px) saturate(210%) brightness(1.1);
 }
 
+/* [EN] INNER BORDERS: Using ::after to create a "3D lens" effect with top-light highlights. */
+/* [RU] ВНУТРЕННИЕ РАМКИ: Используем ::after для создания эффекта "3D линзы" с бликами сверху. */
 .thick-glass::after {
   content: "";
   position: absolute;
   inset: 0;
-  /* ГЛАВНЫЙ СЕКРЕТ ОБЪЕМА: двойная рамка и внутренний блик */
+  /* [EN] Key Secret: Lighter top/left borders simulate a light source from the top. */
+  /* [RU] Главный секрет: Светлые рамки сверху и слева имитируют источник света сверху. */
   border-top: 1px solid rgba(255, 255, 255, 0.4);
   border-left: 1px solid rgba(255, 255, 255, 0.2);
   border-right: 1px solid rgba(0, 0, 0, 0.1);
   border-bottom: 1.5px solid rgba(0, 0, 0, 0.2);
   border-radius: inherit;
   pointer-events: none;
-  /* Внутренняя тень создает эффект глубины (линзы) */
+  /* [EN] Inner shadow creates depth (lens effect). */
+  /* [RU] Внутренняя тень создает глубину (эффект линзы). */
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.3),
     inset 0 -1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Насыщенный блик сверху для имитации Apple-стекла */
+/* [EN] TOP GLOSS: A subtle gradient to mimic premium Apple-style glass. */
+/* [RU] ВЕРХНИЙ БЛИК: Тонкий градиент для имитации премиального стекла в стиле Apple. */
 .thick-glass::before {
   content: "";
   position: absolute;
@@ -53,6 +69,8 @@ body {
   border-radius: inherit;
 }
 
+/* [EN] INTERACTION: Smooth transition for hover and click states. */
+/* [RU] ВЗАИМОДЕЙСТВИЕ: Плавный переход для состояний наведения и клика. */
 .thick-glass.active-press {
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -67,33 +85,13 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.refractive-distortion {
-  backdrop-filter: blur(28px) saturate(240%) contrast(105%);
-  -webkit-backdrop-filter: blur(28px) saturate(240%) contrast(105%);
-}
+/* ============================================================
+   [EN] ANIMATIONS (ANIMATSII)
+   [RU] АНИМАЦИИ
+   ============================================================ */
 
-.thick-glass.active-press:active::before {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.3) 0%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  opacity: 1;
-}
-
-@keyframes headerReveal {
-  0% {
-    opacity: 0;
-    transform: translateY(-10px);
-    filter: blur(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
-  }
-}
-
+/* [EN] CONTENT REVEAL: Elements slide up and blur out for a smooth entry. */
+/* [RU] ПРОЯВЛЕНИЕ КОНТЕНТА: Элементы выезжают вверх и размываются для плавного появления. */
 @keyframes contentReveal {
   0% {
     opacity: 0;
@@ -107,25 +105,13 @@ body {
   }
 }
 
-.animate-header-reveal {
-  animation: headerReveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
 .animate-content-reveal {
   opacity: 0;
   animation: contentReveal 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
 }
 
-.draw-animation {
-  stroke-dasharray: 250;
-  stroke-dashoffset: 250;
-  animation: drawLine 1s ease-in-out forwards;
-}
-
-.group:hover .draw-animation {
-  stroke-dashoffset: 0;
-}
-
+/* [EN] SPARKLINE DRAWING: Animates the chart lines from left to right. */
+/* [RU] ОТРИСОВКА ГРАФИКА: Анимирует линии графиков слева направо. */
 @keyframes drawLine {
   0% {
     stroke-dashoffset: 250;
@@ -135,35 +121,33 @@ body {
   }
 }
 
-/* --- АНИМАЦИЯ СМЕНЫ ТЕМЫ (View Transitions) --- */
+.draw-animation {
+  stroke-dasharray: 250;
+  stroke-dashoffset: 250;
+  animation: drawLine 1s ease-in-out forwards;
+}
 
-/* Отключаем стандартное растворение только когда активен наш класс */
+/* ============================================================
+   [EN] THEME TRANSITIONS (View Transitions API)
+   [RU] ПЕРЕКЛЮЧЕНИЕ ТЕМ (Через View Transitions API)
+   ============================================================ */
+
+/* [EN] CIRCLE REVEAL: This creates the "expanding circle" effect when changing themes.
+   We use CSS variables (--click-x, --click-y) passed from JavaScript. */
+/* [RU] КРУГОВОЕ ПРОЯВЛЕНИЕ: Создает эффект "расширяющегося круга" при смене темы.
+   Мы используем CSS-переменные (--click-x, --click-y), переданные из JavaScript. */
+
 .theme-transition::view-transition-old(root),
 .theme-transition::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
 }
 
-/* 1. Идем в СВЕТЛУЮ: Новая тема растекается из точки */
 .theme-transition::view-transition-new(root) {
   animation: reveal-theme 0.35s ease-in-out forwards;
-  z-index: 2; /* Новая тема ложится сверху */
-}
-.theme-transition::view-transition-old(root) {
-  z-index: 1; /* Старая ждет внизу */
+  z-index: 2;
 }
 
-/* 2. Идем в ТЕМНУЮ (режим shrink): Старая тема схлопывается в точку */
-.theme-transition.shrink::view-transition-old(root) {
-  animation: shrink-theme 0.35s ease-in-out forwards;
-  z-index: 2; /* Теперь СТАРАЯ (светлая) тема лежит сверху */
-}
-.theme-transition.shrink::view-transition-new(root) {
-  animation: none; /* Убираем анимацию с новой (темной) темы */
-  z-index: 1; /* Темная тема уже готова и ждет снизу */
-}
-
-/* Сами анимации используют переменные, которые мы передадим из JS */
 @keyframes reveal-theme {
   from {
     clip-path: circle(0px at var(--click-x) var(--click-y));
@@ -181,6 +165,11 @@ body {
     clip-path: circle(0px at var(--click-x) var(--click-y));
   }
 }
+
+/* ============================================================
+   [EN] FAVORITES STAR ANIMATION
+   [RU] АНИМАЦИЯ ЗВЕЗДЫ ИЗБРАННОГО
+   ============================================================ */
 
 @keyframes star-glow {
   0%,
