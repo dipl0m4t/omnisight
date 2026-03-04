@@ -49,7 +49,7 @@ export const ThemeToggle = () => {
   return (
     <button
       onClick={handleToggle}
-      className={`p-3.5 flex items-center justify-center transition-all thick-glass refractive-distortion border shadow-lg active:scale-90 hover:brightness-110 rounded-full
+      className={`p-3.5 flex items-center justify-center transition-all thick-glass refractive-distortion border shadow-lg active:scale-90 hover:brightness-110 rounded-full cursor-pointer
       ${
         theme === "dark"
           ? "border-white/[0.15] bg-white/[0.05] text-white hover:bg-white/[0.1]"

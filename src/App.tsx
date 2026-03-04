@@ -5,14 +5,6 @@ import "./App.css";
 import { useTheme } from "./components/theme/ThemeContext";
 import { Logo } from "./components/Logo";
 
-// [EN] MOCK DATA: A static array simulating a database response. Later, Prisma will provide this.
-// [RU] ФЕЙКОВЫЕ ДАННЫЕ: Статичный массив, имитирующий ответ от базы данных. Позже это будет приходить от Prisma.
-// const mockPortfolio = [
-//   { id: 1, coinId: "bitcoin", amount: 0.5, buyPrice: 60000 },
-//   { id: 2, coinId: "ethereum", amount: 5, buyPrice: 2000 },
-//   { id: 3, coinId: "solana", amount: 50, buyPrice: 100 },
-// ];
-
 // [EN] SVG CHART COMPONENT: Uses `useLayoutEffect` to measure the length of the SVG path BEFORE the browser paints it.
 // [EN] This allows us to animate the line drawing from 0 to its full length smoothly.
 // [RU] КОМПОНЕНТ SVG-ГРАФИКА: Использует `useLayoutEffect`, чтобы измерить длину SVG-пути ДО того, как браузер его отрисует.
@@ -119,7 +111,7 @@ const LiveClock = () => {
     return () => clearInterval(timer);
   }, []);
   return (
-    <span className="pt-20">
+    <span className="pt-20 cursor-default">
       LAST SYNC: {time.toLocaleDateString()} {time.toLocaleTimeString()}
     </span>
   );
@@ -182,6 +174,10 @@ function App() {
     { id: string; name: string; symbol: string; thumb: string }[]
   >([]);
   const [isSearching, setIsSearching] = useState(false);
+
+  // [RU] Состояния для сортировки
+  const [sortKey, setSortKey] = useState("market_cap");
+  const [sortDirection, setSortDirection] = useState("desc");
 
   // ==========================================
   // 2. EFFECTS & LIFECYCLES (ЭФФЕКТЫ И ЖИЗНЕННЫЙ ЦИКЛ)
@@ -324,6 +320,70 @@ function App() {
     );
   });
 
+  const sortedMarkets = [...filteredMarkets].sort((a, b) => {
+    const pricesA = a?.sparkline_in_7d?.price || [];
+    const pricesB = b?.sparkline_in_7d?.price || [];
+    // Получаем значения нужной колонки для двух монеток
+    const valueA =
+      sortKey === "trend"
+        ? pricesA[pricesA.length - 1] - pricesA[0]
+        : (a[sortKey as keyof typeof a] ?? 0);
+    const valueB =
+      sortKey === "trend"
+        ? pricesB[pricesB.length - 1] - pricesB[0]
+        : (b[sortKey as keyof typeof b] ?? 0);
+
+    if (sortDirection === "asc") {
+      if (valueA < valueB) return -1;
+      if (valueA > valueB) return 1;
+      return 0;
+    } else {
+      // Логика "desc"
+      if (valueA < valueB) return 1;
+      if (valueA > valueB) return -1;
+      return 0;
+    }
+  });
+
+  const marketMap = new Map(markets.map((m) => [m.id, m]));
+  const sortedPortfolio = [...filteredPortfolio].sort((a, b) => {
+    // 1. Находим актуальные рыночные данные для монеты A и монеты B
+    const marketDataA = marketMap.get(a.coinId);
+    const marketDataB = marketMap.get(b.coinId);
+
+    // 2. Достаем текущую цену из рынка (если не нашли - ставим 0)
+    const currentPriceA = marketDataA?.current_price ?? 0;
+    const currentPriceB = marketDataB?.current_price ?? 0;
+
+    // 3. А теперь считаем Value (Количество * Текущая цена)
+    const valueA = (() => {
+      if (sortKey === "name") return marketDataB?.name || ""; // Инверсия для имен
+      if (sortKey === "value") return a.amount * currentPriceA;
+      if (sortKey === "profit_loss")
+        return (currentPriceA - a.buyPrice) * a.amount;
+      return 0;
+    })();
+
+    const valueB = (() => {
+      if (sortKey === "name") return marketDataA?.name || ""; // Инверсия для имен
+      if (sortKey === "value") return b.amount * currentPriceB;
+      if (sortKey === "profit_loss")
+        return (currentPriceB - b.buyPrice) * b.amount;
+      return 0;
+    })();
+
+    if (sortDirection === "asc") {
+      if (valueA < valueB) return -1;
+      if (valueA > valueB) return 1;
+      return 0;
+    } else {
+      // Логика "desc"
+      if (valueA < valueB) return 1;
+      if (valueA > valueB) return -1;
+      return 0;
+    }
+  });
+
   // [EN] PAGINATION: Calculates array indexes based on current page.
   // [RU] ПАГИНАЦИЯ: Вычисляет индексы массива на основе текущей страницы.
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -331,10 +391,10 @@ function App() {
 
   // [EN] Grab exactly 10 coins for the current view.
   // [RU] Берем ровно 10 монет для текущего отображения.
-  const currentCoins = filteredMarkets.slice(startIndex, endIndex);
+  const currentCoins = sortedMarkets.slice(startIndex, endIndex);
 
   // ДОБАВЛЯЕМ: Нарезаем 10 монет для Your Portfolio
-  const currentPortfolio = filteredPortfolio.slice(startIndex, endIndex);
+  const currentPortfolio = sortedPortfolio.slice(startIndex, endIndex);
 
   // ДОБАВЛЯЕМ: Считаем общее количество элементов в зависимости от текущей вкладки
   const totalItems =
@@ -346,6 +406,19 @@ function App() {
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
+  };
+
+  // [EN] Function of switching direction and column of sorting .
+  // [RU] Функция переключения направления и колонки сортировки.
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      sortDirection === "desc"
+        ? setSortDirection("asc")
+        : setSortDirection("desc");
+    } else {
+      setSortKey(key);
+      setSortDirection("desc");
+    }
   };
 
   // [RU] Функция сохранения актива в базу данных
@@ -499,7 +572,7 @@ function App() {
               >
                 <ThemeToggle />
                 <button
-                  className={`px-6 py-3.5 text-sm font-black transition-all thick-glass refractive-distortion border tracking-widest uppercase shadow-lg active:scale-95
+                  className={`px-6 py-3.5 text-sm font-black transition-all thick-glass refractive-distortion border tracking-widest uppercase shadow-lg active:scale-95 cursor-pointer
                   ${theme === "dark" ? "border-white/[0.15] bg-white/[0.05] text-white hover:bg-white/[0.1] rounded-4xl" : "border-zinc-300 bg-white/80 text-black hover:bg-zinc-100 rounded-4xl"}`}
                 >
                   [ CONNECT WALLET ]
@@ -538,7 +611,7 @@ function App() {
               {activeTab === "portfolio" && (
                 <button
                   onClick={() => setIsAddModalOpen(true)}
-                  className="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-500 border border-emerald-500/30 rounded-full hover:bg-emerald-500/10 transition-colors cursor-pointer shadow-lg active:scale-95"
+                  className="px-4 py-3.5 text-[12px] font-black uppercase tracking-widest text-emerald-500 border border-emerald-500/30 rounded-full hover:bg-emerald-500/10 transition-colors cursor-pointer shadow-lg active:scale-95 thick-glass"
                 >
                   + Add Asset
                 </button>
@@ -572,7 +645,7 @@ function App() {
                   setIsSearchOpen(!isSearchOpen);
                   if (isSearchOpen) setSearchQuery("");
                 }}
-                className={`px-3.5 py-3.5 text-sm font-black transition-all thick-glass refractive-distortion border tracking-widest uppercase shadow-lg active:scale-95
+                className={`px-3.5 py-3.5 text-sm font-black transition-all thick-glass refractive-distortion border tracking-widest uppercase shadow-lg active:scale-95 cursor-pointer
                   ${theme === "dark" ? "border-white/[0.15] bg-white/[0.05] text-white hover:bg-white/[0.1] rounded-4xl" : "border-zinc-300 bg-white/80 text-black hover:bg-zinc-100 rounded-4xl"}`}
               >
                 <svg
@@ -648,34 +721,79 @@ function App() {
                 {activeTab === "markets" && (
                   <th className={`${tableHeaderClass} w-14`}></th>
                 )}
-                <th className={`${tableHeaderClass} w-56 text-left`}>Asset</th>
-                <th className={`${tableHeaderClass} w-44 text-right`}>
-                  {activeTab === "markets" ? "Price / 24H Change" : "Holdings"}
-                </th>
-                {/* [RU] Кнопка появляется только во вкладке Портфель */}
+
                 <th
-                  className={`${tableHeaderClass} text-right w-44 hidden sm:table-cell`}
+                  className={`${tableHeaderClass} w-60 text-left cursor-pointer`}
+                  onClick={() => handleSort("name")}
                 >
-                  {activeTab === "markets" ? "Market Cap" : "Value"}
+                  Asset
+                  {sortKey === "name" && (sortDirection === "asc" ? "↑" : "↓")}
                 </th>
-                <th className={`${tableHeaderClass} text-right w-52`}>
-                  {activeTab === "markets" ? "Trend (7d)" : "Profit/Loss"}
+                <th
+                  className={`${tableHeaderClass} w-36 text-right ${activeTab === "markets" ? "cursor-pointer" : "cursor-default"}`}
+                  onClick={() =>
+                    activeTab === "markets" && handleSort("current_price")
+                  }
+                >
+                  {activeTab === "markets" ? "Price" : "Holdings"}{" "}
+                  {sortKey === "current_price" &&
+                    (sortDirection === "asc" ? "↑" : "↓")}
+                </th>
+                {activeTab === "markets" && (
+                  <th
+                    className={`${tableHeaderClass} w-44 text-right hidden sm:table-cell cursor-pointer`}
+                    onClick={() => handleSort("price_change_percentage_24h")}
+                  >
+                    24H Change, %
+                    {sortKey === "price_change_percentage_24h" &&
+                      (sortDirection === "asc" ? "↑" : "↓")}
+                  </th>
+                )}
+                {/* [RU] Кнопки появляется только во вкладке Портфель */}
+                {activeTab === "portfolio" && (
+                  <th
+                    className={`${tableHeaderClass} w-44 text-right hidden sm:table-cell cursor-default`}
+                  >
+                    Buy Price
+                  </th>
+                )}
+                <th
+                  className={`${tableHeaderClass} text-right w-44 hidden sm:table-cell cursor-pointer`}
+                  onClick={() =>
+                    handleSort(activeTab === "markets" ? "market_cap" : "value")
+                  }
+                >
+                  {activeTab === "markets" ? "Market Cap" : "Value"}{" "}
+                  {(sortKey === "market_cap" || sortKey === "value") &&
+                    (sortDirection === "asc" ? "↑" : "↓")}
+                </th>
+                <th
+                  className={`${tableHeaderClass} text-right w-44 pr-10 cursor-pointer`}
+                  onClick={() =>
+                    handleSort(
+                      activeTab === "markets" ? "trend" : "profit_loss",
+                    )
+                  }
+                >
+                  {activeTab === "markets" ? "Trend (7d)" : "Profit | Loss"}{" "}
+                  {(sortKey === "trend" || sortKey === "profit_loss") &&
+                    (sortDirection === "asc" ? "↑" : "↓")}
                 </th>
                 {/* [RU] ДОБАВЛЯЕМ: Пустая колонка для кнопок управления (показываем только в портфеле) */}
                 {activeTab === "portfolio" && (
-                  <th className="px-4 py-4 w-16"></th>
+                  <th className={`${tableHeaderClass} px-4 py-4 w-16`}></th>
                 )}
               </tr>
             </thead>
 
             <tbody
-              key={`${activeTab}-${showFavoritesOnly}`}
+              key={`${activeTab}-${showFavoritesOnly}-${sortKey}-${sortDirection}`}
               className="divide-y divide-zinc-100 dark:divide-white/[0.03]"
             >
               {loading ? (
                 <tr>
                   <td
-                    colSpan={activeTab === "markets" ? 5 : 4}
+                    colSpan={activeTab === "markets" ? 5 : 6}
                     className="py-24 text-center font-mono text-xs text-zinc-400 uppercase tracking-widest animate-pulse"
                   >
                     Initializing Sync...
@@ -741,36 +859,42 @@ function App() {
                             <span className="text-lg font-black text-zinc-950 dark:text-zinc-100 tracking-wide">
                               {coin.name}
                             </span>
-                            <span className="text-[10.5px] font-bold text-zinc-500 dark:text-zinc-400 tracking-widest">
+                            <span className="text-[10.5px] font-bold text-zinc-500 dark:text-zinc-400 tracking-wide">
                               {coin.symbol.toUpperCase()}
                             </span>
                           </div>
                         </td>
                         <td className={`${tableCellClass} text-right`}>
                           <div className="flex flex-col items-end">
-                            <span className="text-base font-bold text-zinc-950 dark:text-zinc-200 tracking-tight">
+                            <span className="text-base font-bold text-zinc-950 dark:text-zinc-200 tracking-m">
                               {formatPrice(coin.current_price)}
-                            </span>
-                            <span
-                              className={`text-xs font-sans font-black mt-0.5 ${isNeg ? "text-red-500" : "text-emerald-500"}`}
-                            >
-                              {isNeg ? "▼" : "▲"}{" "}
-                              {Math.abs(
-                                coin.price_change_percentage_24h ?? 0,
-                              ).toFixed(2)}
-                              %
                             </span>
                           </div>
                         </td>
+
                         <td
                           className={`${tableCellClass} text-right text-sm font-extrabold text-zinc-700 dark:text-zinc-500 sm:table-cell tracking-wide`}
+                        >
+                          <span
+                            className={`text-[18px] font-mono font-black mt-0.5 ${isNeg ? "text-red-500" : "text-emerald-500"}`}
+                          >
+                            {isNeg ? "▼" : "▲"}{" "}
+                            {Math.abs(
+                              coin.price_change_percentage_24h ?? 0,
+                            ).toFixed(2)}
+                            %
+                          </span>
+                        </td>
+
+                        <td
+                          className={`${tableCellClass} text-right text-m font-extrabold text-zinc-700 dark:text-zinc-500 sm:table-cell tracking-wider`}
                         >
                           {formatMarketCap(coin.market_cap)}
                         </td>
                         <td className={tableCellClass}>
                           <div className="flex justify-end">
                             <svg
-                              className="w-44 h-12"
+                              className="w-full h-12"
                               viewBox="0 0 100 40"
                               preserveAspectRatio="none"
                             >
@@ -851,7 +975,7 @@ function App() {
                 </tr>
               ) : (
                 currentPortfolio.map((pos) => {
-                  const coin = markets.find((m) => m.id === pos.coinId);
+                  const coin = marketMap.get(pos.coinId);
                   if (!coin) return null;
                   const val = coin.current_price * pos.amount;
                   const pl = val - pos.amount * pos.buyPrice;
@@ -860,7 +984,7 @@ function App() {
                   return (
                     <tr
                       key={pos.id}
-                      className="group hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors font-mono group"
+                      className="group hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-[background-color] font-mono group"
                     >
                       <td className={tableCellClass}>
                         <div className="flex items-center gap-3">
@@ -878,6 +1002,14 @@ function App() {
                         {pos.amount}
                       </td>
                       <td
+                        className={`${tableCellClass} text-right text-base font-bold text-zinc-900 dark:text-zinc-100`}
+                      >
+                        $
+                        {pos.buyPrice.toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td
                         className={`${tableCellClass} text-right text-base font-bold text-zinc-900 dark:text-zinc-100 tracking-tight`}
                       >
                         $
@@ -893,6 +1025,7 @@ function App() {
                           minimumFractionDigits: 2,
                         })}
                       </td>
+
                       {/* ================= КНОПКИ РЕДАКТИРОВАНИЯ И УДАЛЕНИЯ ================= */}
                       <td className="px-4 py-4 text-right align-middle">
                         {/* Кнопки скрыты (opacity-0), но появляются при наведении на строку (group-hover:opacity-100) */}
@@ -1343,7 +1476,7 @@ function App() {
         className={`relative z-10 border-t transition-colors duration-300 py-12 mt-auto text-[12px] font-mono font-bold tracking-[0.4em] uppercase
         ${theme === "dark" ? "border-white/[0.05] bg-black/60 text-zinc-500" : "border-zinc-200 bg-white/80 text-zinc-600 backdrop-blur-md"}`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex justify-between items-center w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex justify-between items-center w-full cursor-default">
           <span>© {new Date().getFullYear()} OMNISIGHT_TERMINAL</span>
           <span className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
