@@ -496,12 +496,25 @@ function App() {
         </div>
       </main>
 
-      <footer
+      {/* <footer
         className={`relative z-10 border-t transition-colors duration-300 py-12 mt-auto text-[12px] font-mono font-bold tracking-[0.4em] uppercase ${theme === "dark" ? "border-white/[0.05] bg-black/60 text-zinc-500" : "border-zinc-200 bg-white/80 text-zinc-600 backdrop-blur-md"}`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-8 flex justify-between items-center w-full cursor-default">
           <span>© {new Date().getFullYear()} OMNISIGHT_TERMINAL</span>
           <span className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            SYSTEM_STATUS: STABLE
+          </span>
+        </div>
+      </footer> */}
+
+      <footer
+        className={`relative z-10 border-t transition-colors duration-300 py-8 sm:py-12 mt-auto text-[10px] sm:text-[12px] font-mono font-bold tracking-widest sm:tracking-[0.4em] uppercase ${theme === "dark" ? "border-white/[0.05] bg-black/60 text-zinc-500" : "border-zinc-200 bg-white/80 text-zinc-600 backdrop-blur-md"}`}
+      >
+        {/* Изменили flex на flex-col для мобилок и добавили gap-4 */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row justify-between items-center gap-4 w-full cursor-default text-center">
+          <span>© {new Date().getFullYear()} OMNISIGHT</span>
+          <span className="flex items-center justify-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             SYSTEM_STATUS: STABLE
           </span>
