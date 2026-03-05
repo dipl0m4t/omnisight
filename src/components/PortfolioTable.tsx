@@ -51,7 +51,7 @@ export const PortfolioTable = ({
             Buy Price
           </th>
 
-          {/* ==== КОЛОНКА INVESTED ==== */}
+          {/* INVESTED */}
           <SortableHeader
             label="Invested"
             sortKey="invested"
@@ -107,6 +107,7 @@ export const PortfolioTable = ({
                 key={pos.id}
                 className="group hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-[background-color] font-mono group"
               >
+                {/* 1. ASSET */}
                 <td className={tableCellClass}>
                   <div className="flex items-center gap-3">
                     <span className="text-lg font-black text-zinc-950 dark:text-zinc-100 tracking-wide">
@@ -117,49 +118,70 @@ export const PortfolioTable = ({
                     </span>
                   </div>
                 </td>
+
+                {/* 2. HOLDINGS (Красивое округление до 6 знаков) */}
                 <td
                   className={`${tableCellClass} text-right text-base font-bold text-zinc-900 dark:text-zinc-100`}
                 >
-                  {pos.amount}
+                  {pos.amount.toLocaleString("en-US", {
+                    maximumFractionDigits: 6,
+                  })}
                 </td>
+
+                {/* 3. BUY PRICE (Строго 2 знака) */}
                 <td
                   className={`${tableCellClass} text-right text-base font-bold text-zinc-900 dark:text-zinc-100`}
                 >
                   $
                   {pos.buyPrice.toLocaleString("en-US", {
                     minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
                   })}
                 </td>
+
+                {/* 4. INVESTED (Строго 2 знака) */}
                 <td
                   className={`${tableCellClass} text-right text-base font-bold text-zinc-500 dark:text-zinc-400 tracking-tight`}
                 >
                   $
                   {invested.toLocaleString("en-US", {
                     minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
                   })}
                 </td>
+
+                {/* 5. VALUE (Строго 2 знака) */}
                 <td
                   className={`${tableCellClass} text-right text-base font-bold text-zinc-900 dark:text-zinc-100 tracking-tight`}
                 >
-                  ${val.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  $
+                  {val.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </td>
+
+                {/* 6. PROFIT/LOSS (Строго 2 знака) */}
                 <td
                   className={`px-6 py-5 text-right text-base font-black pr-10 ${isProfit ? "text-emerald-500" : "text-red-500"}`}
                 >
                   {isProfit ? "+" : "-"}$
                   {Math.abs(pl).toLocaleString("en-US", {
                     minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
                   })}
                 </td>
+
+                {/* 7. ACTIONS */}
                 <td className="px-4 py-4 text-right align-middle">
                   <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <button
                       onClick={() => {
                         setEditingAsset({
                           id: pos.id,
-                          coinId: coin.name,
-                          amount: String(pos.amount),
-                          buyPrice: String(pos.buyPrice),
+                          coinId: pos.coinId,
+                          invested: (pos.amount * pos.buyPrice).toString(),
+                          buyPrice: pos.buyPrice.toString(),
                         });
                         setIsEditModalOpen(true);
                       }}

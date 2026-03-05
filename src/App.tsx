@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { PortfolioSummary } from "./components/PortfolioSummary";
 import "./App.css";
 
 // --- ТИПЫ И УТИЛИТЫ ---
@@ -46,7 +47,7 @@ function App() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newAsset, setNewAsset] = useState({
     coinId: "",
-    amount: "",
+    invested: "",
     buyPrice: "",
   });
 
@@ -54,7 +55,7 @@ function App() {
   const [editingAsset, setEditingAsset] = useState<{
     id: number;
     coinId: string;
-    amount: string;
+    invested: string;
     buyPrice: string;
   } | null>(null);
 
@@ -268,21 +269,69 @@ function App() {
 
   const handleAddAsset = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 1. Рассчитываем количество монет: (вложенные деньги / цена покупки)
+    const investedAmount = Number(newAsset.invested);
+    const buyPrice = Number(newAsset.buyPrice);
+
+    if (investedAmount <= 0 || buyPrice <= 0) {
+      alert(
+        "Please enter valid positive numbers for Invested Amount and Buy Price.",
+      );
+      return;
+    }
+
+    const calculatedAmount = investedAmount / buyPrice;
+
+    // 2. Проверяем, есть ли уже такая монета в портфеле
+    const existingAsset = portfolio.find((p) => p.coinId === newAsset.coinId);
+
     try {
-      const res = await fetch("http://localhost:3001/api/portfolio", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          coinId: newAsset.coinId,
-          amount: Number(newAsset.amount),
-          buyPrice: Number(newAsset.buyPrice),
-        }),
-      });
-      if (!res.ok) throw new Error("Ошибка при сохранении в БД");
-      const addedItem = await res.json();
-      setPortfolio((prev) => [...prev, addedItem]);
+      if (existingAsset) {
+        // ЕСЛИ МОНЕТА УЖЕ ЕСТЬ: Считаем новую среднюю цену и обновляем
+        const currentInvested = existingAsset.amount * existingAsset.buyPrice;
+        const totalInvested = currentInvested + investedAmount;
+        const newTotalAmount = existingAsset.amount + calculatedAmount;
+        const averageBuyPrice = totalInvested / newTotalAmount; // Новая средняя цена!
+
+        const res = await fetch(
+          `http://localhost:3001/api/portfolio/${existingAsset.id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              amount: newTotalAmount,
+              buyPrice: averageBuyPrice,
+            }),
+          },
+        );
+
+        if (!res.ok) throw new Error("Ошибка при обновлении БД");
+        const updatedItem = await res.json();
+
+        setPortfolio((prev) =>
+          prev.map((item) => (item.id === updatedItem.id ? updatedItem : item)),
+        );
+      } else {
+        // ЕСЛИ МОНЕТЫ НЕТ: Создаем новую запись
+        const res = await fetch("http://localhost:3001/api/portfolio", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            coinId: newAsset.coinId,
+            amount: calculatedAmount, // Отправляем вычисленное количество
+            buyPrice: buyPrice,
+          }),
+        });
+
+        if (!res.ok) throw new Error("Ошибка при сохранении в БД");
+        const addedItem = await res.json();
+        setPortfolio((prev) => [...prev, addedItem]);
+      }
+
+      // Сбрасываем модалку
       setIsAddModalOpen(false);
-      setNewAsset({ coinId: "", amount: "", buyPrice: "" });
+      setNewAsset({ coinId: "", invested: "", buyPrice: "" });
       setModalSearchQuery("");
       setSelectedCoinName("");
       setSearchResults([]);
@@ -294,6 +343,15 @@ function App() {
   const handleUpdateAsset = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingAsset) return;
+
+    // Рассчитываем новое количество монет
+    const investedAmount = Number(editingAsset.invested);
+    const buyPrice = Number(editingAsset.buyPrice);
+
+    if (investedAmount <= 0 || buyPrice <= 0) return;
+
+    const calculatedAmount = investedAmount / buyPrice;
+
     try {
       const res = await fetch(
         `http://localhost:3001/api/portfolio/${editingAsset.id}`,
@@ -301,16 +359,18 @@ function App() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            amount: Number(editingAsset.amount),
-            buyPrice: Number(editingAsset.buyPrice),
+            amount: calculatedAmount, // Отправляем вычисленное количество
+            buyPrice: buyPrice,
           }),
         },
       );
       if (!res.ok) throw new Error("Ошибка БД");
       const updatedItem = await res.json();
+
       setPortfolio((prev) =>
         prev.map((item) => (item.id === updatedItem.id ? updatedItem : item)),
       );
+
       setIsEditModalOpen(false);
       setEditingAsset(null);
     } catch (error) {
@@ -406,16 +466,24 @@ function App() {
               itemsPerPage={itemsPerPage}
             />
           ) : (
-            <PortfolioTable
-              currentPortfolio={currentPortfolio}
-              marketMap={marketMap}
-              sortKey={sortKey}
-              sortDirection={sortDirection}
-              handleSort={handleSort}
-              setEditingAsset={setEditingAsset}
-              setIsEditModalOpen={setIsEditModalOpen}
-              setAssetToDelete={setAssetToDelete}
-            />
+            <div className="flex flex-col gap-6">
+              {/* НАШ НОВЫЙ ДАШБОРД */}
+              <PortfolioSummary
+                portfolio={portfolio}
+                marketMap={marketMap}
+                theme={theme}
+              />
+              <PortfolioTable
+                currentPortfolio={currentPortfolio}
+                marketMap={marketMap}
+                sortKey={sortKey}
+                sortDirection={sortDirection}
+                handleSort={handleSort}
+                setEditingAsset={setEditingAsset}
+                setIsEditModalOpen={setIsEditModalOpen}
+                setAssetToDelete={setAssetToDelete}
+              />
+            </div>
           )}
 
           <TablePagination

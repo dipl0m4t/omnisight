@@ -37,7 +37,7 @@ export const DeleteModal = ({
   </div>
 );
 
-// 2. Модалка Добавления (каркас)
+// 2. Модалка Добавления (Обновленная: Invested вместо Amount)
 export const AddAssetModal = ({
   theme,
   handleAddAsset,
@@ -63,9 +63,9 @@ export const AddAssetModal = ({
       <h3 className="text-xl font-black uppercase tracking-widest mb-6 text-center text-zinc-900 dark:text-white">
         Add New Asset
       </h3>
-      {/* СЮДА ВСТАВЬ ТВОЮ ФОРМУ <form onSubmit={handleAddAsset}> ИЗ APP.TSX */}
+
       <form onSubmit={handleAddAsset} className="flex flex-col gap-5 font-mono">
-        {/* 1. Умный поиск монеты */}
+        {/* 1. Умный поиск монеты (остался без изменений) */}
         <div className="flex flex-col gap-2 relative">
           <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
             Search Asset
@@ -86,9 +86,6 @@ export const AddAssetModal = ({
 
           {/* Всплывающее меню результатов */}
           {!selectedCoinName && modalSearchQuery.length >= 2 && (
-            // 2. ИСПРАВЛЕНИЕ: Заменили top-[85px] на top-full и mt-2.
-            // Теперь список всегда прилипает ровно к низу инпута.
-            // Убрали прозрачность, сделав фон плотным (bg-zinc-900), чтобы нижние поля не просвечивали!
             <div
               className={`absolute top-full mt-2 left-0 right-0 z-[300] rounded-xl border overflow-hidden shadow-2xl
                       ${theme === "dark" ? "bg-zinc-900 border-zinc-700" : "bg-white border-zinc-200"}`}
@@ -99,39 +96,32 @@ export const AddAssetModal = ({
                 </div>
               ) : searchResults.length > 0 ? (
                 <ul className="max-h-48 overflow-y-auto">
-                  {searchResults.map(
-                    (coin: {
-                      id: string;
-                      name: string;
-                      symbol: string;
-                      thumb: string;
-                    }) => (
-                      <li
-                        key={coin.id}
-                        onClick={() => {
-                          setNewAsset({ ...newAsset, coinId: coin.id });
-                          setSelectedCoinName(
-                            `${coin.name} (${coin.symbol.toUpperCase()})`,
-                          );
-                          setModalSearchQuery("");
-                          setSearchResults([]);
-                        }}
-                        className="p-3 border-b border-zinc-200 dark:border-white/5 hover:bg-zinc-800 dark:hover:bg-white/10 cursor-pointer flex items-center gap-4 transition-colors"
-                      >
-                        <img
-                          src={coin.thumb}
-                          alt={coin.name}
-                          className="w-7 h-7 rounded-full bg-zinc-800"
-                        />
-                        <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
-                          {coin.name}
-                        </span>
-                        <span className="text-[10px] font-black tracking-widest text-zinc-500">
-                          {coin.symbol.toUpperCase()}
-                        </span>
-                      </li>
-                    ),
-                  )}
+                  {searchResults.map((coin: any) => (
+                    <li
+                      key={coin.id}
+                      onClick={() => {
+                        setNewAsset({ ...newAsset, coinId: coin.id });
+                        setSelectedCoinName(
+                          `${coin.name} (${coin.symbol.toUpperCase()})`,
+                        );
+                        setModalSearchQuery("");
+                        setSearchResults([]);
+                      }}
+                      className="p-3 border-b border-zinc-200 dark:border-white/5 hover:bg-zinc-800 dark:hover:bg-white/10 cursor-pointer flex items-center gap-4 transition-colors"
+                    >
+                      <img
+                        src={coin.thumb}
+                        alt={coin.name}
+                        className="w-7 h-7 rounded-full bg-zinc-800"
+                      />
+                      <span className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                        {coin.name}
+                      </span>
+                      <span className="text-[10px] font-black tracking-widest text-zinc-500">
+                        {coin.symbol.toUpperCase()}
+                      </span>
+                    </li>
+                  ))}
                 </ul>
               ) : (
                 <div className="p-4 text-center text-xs text-zinc-500 font-mono bg-zinc-900/50">
@@ -142,20 +132,21 @@ export const AddAssetModal = ({
           )}
         </div>
 
-        {/* 2. Количество */}
+        {/* 2. Потраченная сумма (Invested вместо Amount) */}
         <div className="flex flex-col gap-2">
           <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-            Amount (Holdings)
+            Invested Amount (USD)
           </label>
           <input
             type="number"
             step="any"
             min="0"
             required
-            placeholder="0.00"
-            value={newAsset.amount}
+            placeholder="e.g. 1000"
+            /* ВАЖНО: Мы изменили поле с amount на invested */
+            value={newAsset.invested || ""}
             onChange={(e) =>
-              setNewAsset({ ...newAsset, amount: e.target.value })
+              setNewAsset({ ...newAsset, invested: e.target.value })
             }
             className={`w-full p-4 rounded-2xl border outline-none transition-colors font-bold
                       ${theme === "dark" ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50" : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"}`}
@@ -172,13 +163,13 @@ export const AddAssetModal = ({
             step="any"
             min="0"
             required
-            placeholder="0.00"
-            value={newAsset.buyPrice}
+            placeholder="e.g. 126000"
+            value={newAsset.buyPrice || ""}
             onChange={(e) =>
               setNewAsset({ ...newAsset, buyPrice: e.target.value })
             }
             className={`w-full p-4 rounded-2xl border outline-none transition-colors font-bold
-                      ${theme === "dark" ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50" : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"}`}
+              ${theme === "dark" ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50" : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"}`}
           />
         </div>
 
@@ -208,7 +199,7 @@ export const AddAssetModal = ({
   </div>
 );
 
-// 3. Модалка Редактирования (каркас)
+// 3. Модалка Редактирования (Обновленная: Invested вместо Amount)
 export const EditAssetModal = ({
   theme,
   editingAsset,
@@ -230,26 +221,26 @@ export const EditAssetModal = ({
       <p className="text-center text-emerald-500 font-bold tracking-widest mb-6">
         {editingAsset.coinId}
       </p>
-      {/* СЮДА ВСТАВЬ ТВОЮ ФОРМУ <form onSubmit={handleUpdateAsset}> ИЗ APP.TSX */}
+
       <form
         onSubmit={handleUpdateAsset}
         className="flex flex-col gap-5 font-mono"
       >
-        {/* Изменение Количества */}
+        {/* Изменение суммы инвестиций */}
         <div className="flex flex-col gap-2">
           <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-            Amount (Holdings)
+            Invested Amount (USD)
           </label>
           <input
             type="number"
             step="any"
             min="0"
             required
-            value={editingAsset.amount}
+            value={editingAsset.invested || ""}
             onChange={(e) =>
               setEditingAsset({
                 ...editingAsset,
-                amount: e.target.value,
+                invested: e.target.value,
               })
             }
             className={`w-full p-4 rounded-2xl border outline-none transition-colors font-bold
@@ -260,14 +251,14 @@ export const EditAssetModal = ({
         {/* Изменение Цены покупки */}
         <div className="flex flex-col gap-2">
           <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-            Buy Price (USD)
+            Average Buy Price (USD)
           </label>
           <input
             type="number"
             step="any"
             min="0"
             required
-            value={editingAsset.buyPrice}
+            value={editingAsset.buyPrice || ""}
             onChange={(e) =>
               setEditingAsset({
                 ...editingAsset,
