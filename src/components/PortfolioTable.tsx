@@ -26,11 +26,10 @@ export const PortfolioTable = ({
   const tableCellClass = "px-6 py-5 transition-colors";
 
   return (
-    // Тег table должен выглядеть так:
     <table className="w-full text-left border-collapse table-fixed">
       <thead>
         <tr>
-          {/* ASSET - сузили с w-60 до w-56, чтобы освободить место */}
+          {/* ASSET */}
           <SortableHeader
             label="Asset"
             sortKey="name"
@@ -40,20 +39,19 @@ export const PortfolioTable = ({
             className={`${tableHeaderClass} w-56 text-left`}
           />
 
-          {/* HOLDINGS - сузили с w-36 до w-32 */}
+          {/* HOLDINGS */}
           <th className={`${tableHeaderClass} w-32 text-right cursor-default`}>
             Holdings
           </th>
 
-          {/* BUY PRICE - сузили с w-44 до w-40 */}
+          {/* BUY PRICE */}
           <th
             className={`${tableHeaderClass} w-40 text-right hidden sm:table-cell cursor-default`}
           >
             Buy Price
           </th>
 
-          {/* ==== НОВАЯ КОЛОНКА INVESTED ==== */}
-          {/* Ширина w-44, такая же как у Value */}
+          {/* ==== КОЛОНКА INVESTED ==== */}
           <SortableHeader
             label="Invested"
             sortKey="invested"
@@ -63,7 +61,7 @@ export const PortfolioTable = ({
             className={`${tableHeaderClass} text-right w-44 hidden sm:table-cell`}
           />
 
-          {/* VALUE - оставили w-44 */}
+          {/* VALUE */}
           <SortableHeader
             label="Value"
             sortKey="value"
@@ -73,7 +71,7 @@ export const PortfolioTable = ({
             className={`${tableHeaderClass} text-right w-44 hidden sm:table-cell`}
           />
 
-          {/* PROFIT | LOSS - УВЕЛИЧИЛИ с w-44 до w-48, чтобы текст не скрывался */}
+          {/* PROFIT | LOSS */}
           <SortableHeader
             label="Profit | Loss"
             sortKey="profit_loss"
@@ -83,7 +81,6 @@ export const PortfolioTable = ({
             className={`${tableHeaderClass} text-right w-48 pr-10 sm:table-cell`}
           />
 
-          {/* Действия - оставили w-16 */}
           <th className={`${tableHeaderClass} px-4 py-4 w-16`}></th>
         </tr>
       </thead>
