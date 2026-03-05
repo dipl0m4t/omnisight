@@ -726,18 +726,39 @@ function App() {
                   className={`${tableHeaderClass} w-60 text-left cursor-pointer`}
                   onClick={() => handleSort("name")}
                 >
+                  {/* Текст остается обычным текстом в th */}
                   Asset
-                  {sortKey === "name" && (sortDirection === "asc" ? "↑" : "↓")}
+                  {/* А это — наш "умный" резерватор места */}
+                  <span
+                    className={`inline-flex ml-1 w-3 transition-all duration-300 ${
+                      sortKey === "name" ? "opacity-100" : "opacity-0"
+                    } ${sortDirection === "asc" ? "rotate-0" : "rotate-180"}`}
+                  >
+                    ↑
+                  </span>
                 </th>
                 <th
-                  className={`${tableHeaderClass} w-36 text-right ${activeTab === "markets" ? "cursor-pointer" : "cursor-default"}`}
+                  className={`${tableHeaderClass} w-36 text-right ${
+                    activeTab === "markets"
+                      ? "cursor-pointer"
+                      : "cursor-default"
+                  }`}
                   onClick={() =>
                     activeTab === "markets" && handleSort("current_price")
                   }
                 >
-                  {activeTab === "markets" ? "Price" : "Holdings"}{" "}
-                  {sortKey === "current_price" &&
-                    (sortDirection === "asc" ? "↑" : "↓")}
+                  {activeTab === "markets" ? "Price" : "Holdings"}
+                  {activeTab === "markets" && (
+                    <span
+                      className={`inline-flex ml-1 w-3 transition-all duration-300 ${
+                        sortKey === "current_price"
+                          ? "opacity-100"
+                          : "opacity-0"
+                      } ${sortDirection === "asc" ? "rotate-0" : "rotate-180"}`}
+                    >
+                      ↑
+                    </span>
+                  )}
                 </th>
                 {activeTab === "markets" && (
                   <th
@@ -745,8 +766,15 @@ function App() {
                     onClick={() => handleSort("price_change_percentage_24h")}
                   >
                     24H Change, %
-                    {sortKey === "price_change_percentage_24h" &&
-                      (sortDirection === "asc" ? "↑" : "↓")}
+                    <span
+                      className={`inline-flex ml-1 w-3 transition-all duration-300 ${
+                        sortKey === "price_change_percentage_24h"
+                          ? "opacity-100"
+                          : "opacity-0"
+                      } ${sortDirection === "asc" ? "rotate-0" : "rotate-180"}`}
+                    >
+                      ↑
+                    </span>
                   </th>
                 )}
                 {/* [RU] Кнопки появляется только во вкладке Портфель */}
@@ -763,21 +791,35 @@ function App() {
                     handleSort(activeTab === "markets" ? "market_cap" : "value")
                   }
                 >
-                  {activeTab === "markets" ? "Market Cap" : "Value"}{" "}
-                  {(sortKey === "market_cap" || sortKey === "value") &&
-                    (sortDirection === "asc" ? "↑" : "↓")}
+                  {activeTab === "markets" ? "Market Cap" : "Value"}
+                  <span
+                    className={`inline-flex ml-1 w-3 transition-all duration-300 ${
+                      sortKey === "market_cap" || sortKey === "value"
+                        ? "opacity-100"
+                        : "opacity-0"
+                    } ${sortDirection === "asc" ? "rotate-0" : "rotate-180"}`}
+                  >
+                    ↑
+                  </span>
                 </th>
                 <th
-                  className={`${tableHeaderClass} text-right w-44 pr-10 cursor-pointer`}
+                  className={`${tableHeaderClass} text-right w-44 pr-10 sm:table-cell cursor-pointer`}
                   onClick={() =>
                     handleSort(
                       activeTab === "markets" ? "trend" : "profit_loss",
                     )
                   }
                 >
-                  {activeTab === "markets" ? "Trend (7d)" : "Profit | Loss"}{" "}
-                  {(sortKey === "trend" || sortKey === "profit_loss") &&
-                    (sortDirection === "asc" ? "↑" : "↓")}
+                  {activeTab === "markets" ? "Trend (7d)" : "Profit | Loss"}
+                  <span
+                    className={`inline-flex ml-1 w-3 transition-all duration-300 ${
+                      sortKey === "trend" || sortKey === "profit_loss"
+                        ? "opacity-100"
+                        : "opacity-0"
+                    } ${sortDirection === "asc" ? "rotate-0" : "rotate-180"}`}
+                  >
+                    ↑
+                  </span>
                 </th>
                 {/* [RU] ДОБАВЛЯЕМ: Пустая колонка для кнопок управления (показываем только в портфеле) */}
                 {activeTab === "portfolio" && (
