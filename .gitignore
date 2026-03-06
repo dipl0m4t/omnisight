@@ -23,6 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# Prisma
 /src/generated/prisma
+prisma/dev.db
+prisma/dev.db-journal
 
-/src/generated/prisma
+.env
