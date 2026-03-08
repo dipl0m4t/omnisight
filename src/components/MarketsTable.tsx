@@ -73,7 +73,7 @@ export const MarketsTable = ({
               className={`${tableHeaderClass} w-44 text-right hidden sm:table-cell`}
             />
             <SortableHeader
-              label="Trend (7d)"
+              label="Trend (1W)"
               sortKey="trend"
               currentSortKey={sortKey}
               direction={sortDirection}

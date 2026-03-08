@@ -5,6 +5,7 @@ import { ThemeToggle } from "./theme/ThemeToggle";
 interface HeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  setCurrentPage: (page: number) => void;
   isScrolled: boolean;
   theme: string;
 }
@@ -12,6 +13,7 @@ interface HeaderProps {
 export const Header = ({
   activeTab,
   setActiveTab,
+  setCurrentPage,
   isScrolled,
   theme,
 }: HeaderProps) => {
@@ -43,7 +45,10 @@ export const Header = ({
               className={`hidden md:flex gap-8 text-[14px] font-black tracking-[0.3em] text-zinc-600 dark:text-zinc-500 uppercase transition-transform duration-500 origin-center ${isScrolled ? "scale-[0.85]" : "scale-100"}`}
             >
               <button
-                onClick={() => setActiveTab("markets")}
+                onClick={() => {
+                  setActiveTab("markets");
+                  setCurrentPage(1);
+                }}
                 className={`hover:text-black dark:hover:text-white transition-all cursor-pointer ${activeTab === "markets" ? "text-black dark:text-white" : ""}`}
               >
                 MARKETS
@@ -55,7 +60,10 @@ export const Header = ({
                 ANALYTICS
               </a>
               <button
-                onClick={() => setActiveTab("portfolio")}
+                onClick={() => {
+                  setActiveTab("portfolio");
+                  setCurrentPage(1);
+                }}
                 className={`hover:text-black dark:hover:text-white transition-all cursor-pointer ${activeTab === "portfolio" ? "text-black dark:text-white" : ""}`}
               >
                 PORTFOLIO

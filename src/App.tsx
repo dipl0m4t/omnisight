@@ -21,7 +21,7 @@ import {
 
 function App() {
   // ==========================================
-  // 1. STATE MANAGEMENT (СОСТОЯНИЯ)
+  // 1. STATE MANAGEMENT
   // ==========================================
   const [markets, setMarkets] = useState<MarketRow[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
@@ -110,7 +110,7 @@ function App() {
             setError(null);
           } else {
             // Если вернул ошибку лимита - показываем красное предупреждение сверху
-            setError("API RATE LIMIT: Подожди минуту...");
+            setError("API RATE LIMIT: Wait a bit please...");
           }
         }
       } catch {
@@ -260,9 +260,11 @@ function App() {
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
+      setCurrentPage(1);
       setSortDirection(sortDirection === "desc" ? "asc" : "desc");
     } else {
       setSortKey(key);
+      setCurrentPage(1);
       setSortDirection("desc");
     }
   };
@@ -407,6 +409,7 @@ function App() {
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        setCurrentPage={setCurrentPage}
         isScrolled={isScrolled}
         theme={theme}
       />
