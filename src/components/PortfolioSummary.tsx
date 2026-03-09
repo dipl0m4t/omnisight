@@ -8,7 +8,7 @@ interface PortfolioSummaryProps {
 }
 
 // === ОБНОВЛЕННЫЙ И УВЕЛИЧЕННЫЙ DONUT CHART ===
-const DonutChart = ({ data, theme }: { data: any[]; theme: string }) => {
+const DonutChart = ({ data }: { data: any[] }) => {
   // Увеличили радиус и ширину обводки для жирности
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
@@ -21,7 +21,7 @@ const DonutChart = ({ data, theme }: { data: any[]; theme: string }) => {
           viewBox="0 0 100 100"
           className="w-full h-full -rotate-90 overflow-visible"
         >
-          {data.map((asset, i) => {
+          {data.map((asset) => {
             const strokeDasharray = `${(asset.percent * circumference) / 100} ${circumference}`;
             const strokeDashoffset = `${-(asset.startPercent * circumference) / 100}`;
             return (
@@ -230,7 +230,7 @@ export const PortfolioSummary = ({
           </div>
           {/* ВОТ ОНА! Статичная метка времени, как на ПК */}
           <div
-            className={`flex items-center justify-center px-5 py-3 text-sm font-black transition-all border uppercase shadow-xl cursor-default rounded-2xl backdrop-blur-2xl ${theme === "dark" ? "border-white/10 bg-slate-800/60 text-white/90" : "border-slate-200 bg-white/80 text-slate-700"}`}
+            className={`flex items-center justify-center px-5 py-3 text-sm font-black transition-all border uppercase shadow-sm cursor-default rounded-2xl backdrop-blur-2xl ${theme === "dark" ? "border-white/10 bg-slate-800/60 text-white/90" : "border-slate-200 bg-white/80 text-slate-700"}`}
           >
             7D
           </div>
@@ -265,7 +265,7 @@ export const PortfolioSummary = ({
             </svg>
           </>
         ) : (
-          <DonutChart data={distributionData} theme={theme} />
+          <DonutChart data={distributionData} />
         )}
       </div>
     </div>

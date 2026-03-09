@@ -35,8 +35,8 @@ export const MarketsTable = ({
 
   return (
     <div className="w-full overflow-x-auto hide-scrollbar pb-2">
-      <table className="w-full text-left border-collapse min-w-[900px]">
-        {/* table-fixed */}
+      <table className="w-full text-left border-collapse table-fixed min-w-[900px]">
+        {/*  */}
         <thead>
           <tr>
             <th className={`${tableHeaderClass} w-14`}></th>
