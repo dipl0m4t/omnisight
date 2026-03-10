@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 export const DonutChart = ({ portfolio, marketMap, theme }: any) => {
   const data = useMemo(() => {
-    // 1. Считаем общую стоимость и данные для долей
+    // 1. Count general value and data for shares
     let totalValue = 0;
     const assets = portfolio.map((item: any) => {
       const price = marketMap.get(item.coinId)?.current_price || 0;
@@ -11,7 +11,7 @@ export const DonutChart = ({ portfolio, marketMap, theme }: any) => {
       return { symbol: item.coinId, value };
     });
 
-    // 2. Рассчитываем углы для SVG
+    // 2. Calculating angles for SVG
     let cumulativePercent = 0;
     return assets.map((asset: any) => {
       const percent = (asset.value / totalValue) * 100;
@@ -21,7 +21,7 @@ export const DonutChart = ({ portfolio, marketMap, theme }: any) => {
     });
   }, [portfolio, marketMap]);
 
-  // Настройки SVG
+  // SVG Settings
   const radius = 70;
   const circumference = 2 * Math.PI * radius;
 
@@ -32,7 +32,7 @@ export const DonutChart = ({ portfolio, marketMap, theme }: any) => {
           const strokeDasharray = `${(asset.percent * circumference) / 100} ${circumference}`;
           const strokeDashoffset = `${-(asset.startPercent * circumference) / 100}`;
 
-          // Простая палитра цветов
+          // Simple colors palette
           const colors = [
             "#10b981",
             "#3b82f6",
@@ -64,7 +64,7 @@ export const DonutChart = ({ portfolio, marketMap, theme }: any) => {
         })}
       </svg>
 
-      {/* Легенда (список монет справа) */}
+      {/* Legend (list of coins on the right) */}
       <div className="flex flex-col gap-2 ml-6 font-mono text-[14px] font-bold uppercase tracking-widest">
         {data.slice(0, 5).map((asset: any, i: number) => (
           <div key={asset.symbol} className="flex items-center gap-2">

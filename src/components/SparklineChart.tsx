@@ -7,7 +7,7 @@ export const SparklineChart = ({ d, color }: { d: string; color?: string }) => {
     const path = pathRef.current;
     if (!path) return;
 
-    // Браузер теперь точно знает, что это SVG-путь
+    // SVG path for browser
     const length = path.getTotalLength();
     path.style.transition = "none";
     path.style.strokeDasharray = `${length}`;
@@ -24,7 +24,6 @@ export const SparklineChart = ({ d, color }: { d: string; color?: string }) => {
   }, [d]);
 
   return (
-    // Вот этой обертки не хватало!
     <svg
       className="w-full h-12"
       viewBox="0 0 100 40"

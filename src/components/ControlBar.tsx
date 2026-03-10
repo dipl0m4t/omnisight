@@ -25,12 +25,12 @@ export const ControlBar = ({
 }: ControlBarProps) => {
   return (
     <div className="relative mb-6 sm:mb-10 flex flex-col gap-3">
-      {/* Свечение на фоне */}
+      {/* Glow in the background */}
       <div
         className={`absolute -inset-y-6 -inset-x-10 z-0 blur-3xl transition-colors duration-500 pointer-events-none rounded-full ${theme === "dark" ? "bg-black/70" : "bg-white/80"}`}
       ></div>
 
-      {/* Верхняя строка: Часы и Ошибки */}
+      {/* Top line: Clock & Errors */}
       <div className="relative z-10 text-[10px] sm:text-xs font-mono font-black text-zinc-700 dark:text-zinc-500 tracking-widest uppercase flex justify-between">
         <LiveClock />
         {error && (
@@ -38,9 +38,9 @@ export const ControlBar = ({
         )}
       </div>
 
-      {/* Основная панель управления */}
+      {/* Main control panel */}
       <div className="relative z-10 flex items-center justify-between gap-3 sm:gap-5 w-full">
-        {/* ЛЕВЫЙ БЛОК (Теперь он всегда на месте, никаких hidden) */}
+        {/* LEFT BLOCK */}
         <div
           className={`flex items-center gap-3 sm:gap-5 shrink-0 transition-opacity duration-300 ${isSearchOpen ? "opacity-0 pointer-events-none sm:opacity-100 sm:pointer-events-auto" : "opacity-100"}`}
         >
@@ -61,13 +61,13 @@ export const ControlBar = ({
           )}
         </div>
 
-        {/* ЦЕНТРАЛЬНАЯ ЛИНИЯ */}
+        {/* CENTRAL LINE */}
         <div className="h-[1px] flex-1 bg-zinc-300 dark:bg-white/10" />
 
         {/* ПРАВЫЙ БЛОК: Поиск */}
         <div className="flex items-center justify-end shrink-0">
-          {/* Само поле ввода. 
-            Магия здесь: 'absolute' для мобилок (выезжает поверх всего) и 'relative' для ПК.
+          {/* Input. 
+            Магия здесь: 'absolute' for phones and 'relative' for PC.
           */}
           <div
             className={`
@@ -96,7 +96,7 @@ export const ControlBar = ({
             />
           </div>
 
-          {/* Кнопка лупы (Позиционируется поверх плавающего инпута) */}
+          {/* Search button (Positioned above floating input) */}
           <button
             onClick={() => {
               setIsSearchOpen(!isSearchOpen);

@@ -27,8 +27,7 @@ export const PortfolioTable = ({
 
   return (
     <div className="w-full overflow-x-auto hide-scrollbar pb-2">
-      <table className="w-full text-left border-collapse min-w-[900px]">
-        {/* table-fixed */}
+      <table className="w-full text-left border-collapse table-fixed min-w-[900px]">
         <thead>
           <tr>
             {/* ASSET */}
@@ -123,7 +122,7 @@ export const PortfolioTable = ({
                     </div>
                   </td>
 
-                  {/* 2. HOLDINGS (Красивое округление до 6 знаков) */}
+                  {/* 2. HOLDINGS */}
                   <td
                     className={`${tableCellClass} text-right text-base font-bold text-zinc-900 dark:text-zinc-100`}
                   >
@@ -132,7 +131,7 @@ export const PortfolioTable = ({
                     })}
                   </td>
 
-                  {/* 3. BUY PRICE (Строго 2 знака) */}
+                  {/* 3. BUY PRICE */}
                   <td
                     className={`${tableCellClass} text-right text-base font-bold text-zinc-900 dark:text-zinc-100`}
                   >
@@ -143,7 +142,7 @@ export const PortfolioTable = ({
                     })}
                   </td>
 
-                  {/* 4. INVESTED (Строго 2 знака) */}
+                  {/* 4. INVESTED */}
                   <td
                     className={`${tableCellClass} text-right text-base font-bold text-zinc-500 dark:text-zinc-400 tracking-tight`}
                   >
@@ -154,7 +153,7 @@ export const PortfolioTable = ({
                     })}
                   </td>
 
-                  {/* 5. VALUE (Строго 2 знака) */}
+                  {/* 5. VALUE */}
                   <td
                     className={`${tableCellClass} text-right text-base font-bold text-zinc-900 dark:text-zinc-100 tracking-tight`}
                   >
@@ -165,7 +164,7 @@ export const PortfolioTable = ({
                     })}
                   </td>
 
-                  {/* 6. PROFIT/LOSS (Строго 2 знака) */}
+                  {/* 6. PROFIT/LOSS */}
                   <td
                     className={`px-6 py-5 text-right text-base font-black pr-10 ${isProfit ? "text-emerald-500" : "text-red-500"}`}
                   >

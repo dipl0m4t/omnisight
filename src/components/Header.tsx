@@ -29,18 +29,18 @@ export const Header = ({
           ${isScrolled ? "max-w-5xl rounded-[40px]" : "max-w-7xl rounded-[40px]"}
           ${theme === "dark" ? "border-white/[0.08] bg-white/[0.02] shadow-[0_15px_40px_rgba(0,0,0,0.5)]" : "border-zinc-300 bg-white/90 shadow-[0_20px_60px_rgba(0,0,0,0.12)]"}`}
         >
-          {/* === ВЕРХНЯЯ СТРОКА === */}
+          {/* === TOP LINE === */}
           <div
             className={`w-full flex items-center justify-between transition-all duration-500 ${isScrolled ? "px-6 py-2.5" : "px-6 sm:px-10 py-4"}`}
           >
-            {/* ЛОГОТИП */}
+            {/* LOGO */}
             <div
               className={`transition-transform duration-500 origin-left ${isScrolled ? "scale-[0.85]" : "scale-100"}`}
             >
               <Logo />
             </div>
 
-            {/* ДЕСКТОП: НАВИГАЦИЯ */}
+            {/* DESKTOP: NAVIGATION */}
             <nav
               className={`hidden md:flex gap-8 text-[14px] font-black tracking-[0.3em] text-zinc-600 dark:text-zinc-500 uppercase transition-transform duration-500 origin-center ${isScrolled ? "scale-[0.85]" : "scale-100"}`}
             >
@@ -70,13 +70,13 @@ export const Header = ({
               </button>
             </nav>
 
-            {/* ПРАВЫЙ БЛОК: ТЕМА, КОШЕЛЕК (ДЕСКТОП), БУРГЕР (МОБАЙЛ) */}
+            {/* RIGHT BLOCK: THEME, WALLET (DESKTOP), BURGER (MOBILE) */}
             <div
               className={`flex items-center gap-4 md:gap-6 transition-transform duration-500 origin-right ${isScrolled ? "scale-[0.85]" : "scale-100"}`}
             >
               <ThemeToggle />
 
-              {/* ДЕСКТОП: КНОПКА КОШЕЛЬКА (Скрыта на мобилках через hidden md:block!) */}
+              {/* DESKTOP: WALLET BUTTON (Hidden on phones by using hidden md:block!) */}
               <button
                 className={`hidden md:block px-6 py-3.5 text-sm font-black transition-all thick-glass refractive-distortion border tracking-widest uppercase shadow-lg active:scale-95 cursor-pointer
                 ${theme === "dark" ? "border-white/[0.15] bg-white/[0.05] text-white hover:bg-white/[0.1] rounded-4xl" : "border-zinc-300 bg-white/80 text-black hover:bg-zinc-100 rounded-4xl"}`}
@@ -84,7 +84,7 @@ export const Header = ({
                 [ CONNECT WALLET ]
               </button>
 
-              {/* МОБАЙЛ: БУРГЕР-КНОПКА */}
+              {/* MOBILE (BURGER-BUTTON) */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="md:hidden p-2 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
@@ -110,7 +110,7 @@ export const Header = ({
             </div>
           </div>
 
-          {/* === МОБИЛЬНОЕ МЕНЮ (ПЛАВНО ВЫПАДАЕТ) === */}
+          {/* === MOBILE MENU: SMOOTH TRANSITION) === */}
           <div
             className={`md:hidden flex flex-col items-center gap-6 overflow-hidden transition-all duration-500 ease-in-out ${isMobileMenuOpen ? "max-h-[400px] opacity-100 pb-8" : "max-h-0 opacity-0 pb-0"}`}
           >
@@ -141,7 +141,7 @@ export const Header = ({
               </button>
             </nav>
 
-            {/* МОБАЙЛ: КНОПКА КОШЕЛЬКА */}
+            {/* MOBILE: WALLET BUTTON */}
             <button
               className={`px-4 py-4 min-w-[200px] text-xs font-black transition-all thick-glass refractive-distortion border tracking-widest uppercase shadow-lg active:scale-95 cursor-pointer rounded-4xl
               ${theme === "dark" ? "border-white/[0.15] bg-white/[0.05] text-white" : "border-zinc-300 bg-white/80 text-black"}`}

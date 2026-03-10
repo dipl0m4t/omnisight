@@ -1,4 +1,4 @@
-// 1. Модалка Удаления
+// 1. Deleting Modal
 export const DeleteModal = ({
   theme,
   confirmDeleteAsset,
@@ -37,7 +37,7 @@ export const DeleteModal = ({
   </div>
 );
 
-// 2. Модалка Добавления (Обновленная: Invested вместо Amount)
+// 2. Adding Modal
 export const AddAssetModal = ({
   theme,
   handleAddAsset,
@@ -65,7 +65,7 @@ export const AddAssetModal = ({
       </h3>
 
       <form onSubmit={handleAddAsset} className="flex flex-col gap-5 font-mono">
-        {/* 1. Умный поиск монеты (остался без изменений) */}
+        {/* 1. Smart asset search */}
         <div className="flex flex-col gap-2 relative">
           <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
             Search Asset
@@ -73,7 +73,7 @@ export const AddAssetModal = ({
           <input
             type="text"
             required
-            placeholder="Type coin name (e.g. Pepe)..."
+            placeholder="Type coin name (e.g. Bitcoin)..."
             value={selectedCoinName || modalSearchQuery}
             onChange={(e) => {
               setSelectedCoinName("");
@@ -81,14 +81,22 @@ export const AddAssetModal = ({
               setModalSearchQuery(e.target.value);
             }}
             className={`w-full p-4 rounded-2xl border outline-none transition-colors font-bold
-                      ${theme === "dark" ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50" : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"}`}
+              ${
+                theme === "dark"
+                  ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50"
+                  : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"
+              }`}
           />
 
-          {/* Всплывающее меню результатов */}
+          {/* Results pop-up menu */}
           {!selectedCoinName && modalSearchQuery.length >= 2 && (
             <div
               className={`absolute top-full mt-2 left-0 right-0 z-[300] rounded-xl border overflow-hidden shadow-2xl
-                      ${theme === "dark" ? "bg-zinc-900 border-zinc-700" : "bg-white border-zinc-200"}`}
+                ${
+                  theme === "dark"
+                    ? "bg-zinc-900 border-zinc-700"
+                    : "bg-white border-zinc-200"
+                }`}
             >
               {isSearching ? (
                 <div className="p-4 text-center text-xs text-zinc-500 font-mono animate-pulse">
@@ -132,7 +140,7 @@ export const AddAssetModal = ({
           )}
         </div>
 
-        {/* 2. Потраченная сумма (Invested вместо Amount) */}
+        {/* 2. Invested Amount */}
         <div className="flex flex-col gap-2">
           <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
             Invested Amount (USD)
@@ -143,17 +151,20 @@ export const AddAssetModal = ({
             min="0"
             required
             placeholder="e.g. 1000"
-            /* ВАЖНО: Мы изменили поле с amount на invested */
             value={newAsset.invested || ""}
             onChange={(e) =>
               setNewAsset({ ...newAsset, invested: e.target.value })
             }
             className={`w-full p-4 rounded-2xl border outline-none transition-colors font-bold
-                      ${theme === "dark" ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50" : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"}`}
+              ${
+                theme === "dark"
+                  ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50"
+                  : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"
+              }`}
           />
         </div>
 
-        {/* 3. Цена покупки */}
+        {/* 3. Buy Price */}
         <div className="flex flex-col gap-2">
           <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
             Buy Price (USD)
@@ -173,7 +184,7 @@ export const AddAssetModal = ({
           />
         </div>
 
-        {/* 4. Кнопки управления */}
+        {/* 4. Control Buttons */}
         <div className="flex gap-4 mt-4 pt-4 border-t border-zinc-200 dark:border-white/10">
           <button
             type="button"
@@ -199,7 +210,7 @@ export const AddAssetModal = ({
   </div>
 );
 
-// 3. Модалка Редактирования (Обновленная: Invested вместо Amount)
+// 3. Editing Modal
 export const EditAssetModal = ({
   theme,
   editingAsset,
@@ -226,7 +237,7 @@ export const EditAssetModal = ({
         onSubmit={handleUpdateAsset}
         className="flex flex-col gap-5 font-mono"
       >
-        {/* Изменение суммы инвестиций */}
+        {/* Change the Invested amount */}
         <div className="flex flex-col gap-2">
           <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
             Invested Amount (USD)
@@ -244,11 +255,15 @@ export const EditAssetModal = ({
               })
             }
             className={`w-full p-4 rounded-2xl border outline-none transition-colors font-bold
-                      ${theme === "dark" ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50" : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"}`}
+              ${
+                theme === "dark"
+                  ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50"
+                  : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"
+              }`}
           />
         </div>
 
-        {/* Изменение Цены покупки */}
+        {/* Change the Buy price */}
         <div className="flex flex-col gap-2">
           <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
             Average Buy Price (USD)
@@ -266,11 +281,15 @@ export const EditAssetModal = ({
               })
             }
             className={`w-full p-4 rounded-2xl border outline-none transition-colors font-bold
-                      ${theme === "dark" ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50" : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"}`}
+              ${
+                theme === "dark"
+                  ? "bg-black/50 border-white/10 text-white focus:border-emerald-500/50"
+                  : "bg-zinc-50 border-zinc-300 text-black focus:border-emerald-500"
+              }`}
           />
         </div>
 
-        {/* Кнопки */}
+        {/* Buttons */}
         <div className="flex gap-4 mt-4 pt-4 border-t border-zinc-200 dark:border-white/10">
           <button
             type="button"

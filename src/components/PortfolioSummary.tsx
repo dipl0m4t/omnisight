@@ -7,15 +7,14 @@ interface PortfolioSummaryProps {
   theme: string;
 }
 
-// === ОБНОВЛЕННЫЙ И УВЕЛИЧЕННЫЙ DONUT CHART ===
+// === DONUT CHART ===
 const DonutChart = ({ data }: { data: any[] }) => {
-  // Увеличили радиус и ширину обводки для жирности
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-around h-full w-full animate-content-reveal gap-12 px-4 py-6">
-      {/* SVG Кольцо (Увеличено) */}
+      {/* SVG Circle */}
       <div className="relative w-64 h-64 shrink-0">
         <svg
           viewBox="0 0 100 100"
@@ -32,7 +31,6 @@ const DonutChart = ({ data }: { data: any[] }) => {
                 r={radius}
                 fill="transparent"
                 stroke={asset.color}
-                // Сделали линию жирнее
                 strokeWidth="15"
                 strokeDasharray={strokeDasharray}
                 strokeDashoffset={strokeDashoffset}
@@ -43,7 +41,7 @@ const DonutChart = ({ data }: { data: any[] }) => {
             );
           })}
         </svg>
-        {/* Центр кольца (Увеличен шрифт) */}
+        {/* Circle center */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500 pb-1">
             Allocation
@@ -52,7 +50,7 @@ const DonutChart = ({ data }: { data: any[] }) => {
         </div>
       </div>
 
-      {/* Легенда (Увеличены шрифты и отступы) */}
+      {/* Legend */}
       <div className="flex flex-col gap-4 flex-1 max-w-xs">
         {data.slice(0, 6).map((asset) => (
           <div
@@ -64,12 +62,10 @@ const DonutChart = ({ data }: { data: any[] }) => {
                 className="w-3.5 h-3.5 rounded-md shadow-lg"
                 style={{ backgroundColor: asset.color }}
               />
-              {/* Увеличен размер шрифта монеты */}
               <span className="text-sm font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
                 {asset.symbol}
               </span>
             </div>
-            {/* Увеличен размер процентов */}
             <span className="text-base font-black text-zinc-950 dark:text-white">
               {asset.percent.toFixed(1)}%
             </span>
@@ -88,6 +84,7 @@ export const PortfolioSummary = ({
   const [activeView, setActiveView] = useState<"chart" | "distribution">(
     "chart",
   );
+  const [isChartOpen, setIsChartOpen] = useState(true);
 
   const {
     totalBalance,
@@ -162,7 +159,7 @@ export const PortfolioSummary = ({
   const isPositive = totalPnL >= 0;
   const color = isPositive ? "#10b981" : "#ef4444";
 
-  // Отрисовка графика Bezier
+  // Bezier Chart
   const points = useMemo(() => {
     const max = Math.max(...totalSparkline);
     const min = Math.min(...totalSparkline);
@@ -184,7 +181,9 @@ export const PortfolioSummary = ({
     <div
       className={`p-8 rounded-2xl border backdrop-blur-md shadow-2xl transition-all duration-300 thick-glass ${theme === "dark" ? "bg-slate-900/40 border-white/10 text-white" : "bg-white/60 border-slate-200 text-slate-900"}`}
     >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
+      <div
+        className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 transition-all duration-300 ${isChartOpen ? "mb-8" : "mb-2"}`}
+      >
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] pb-2 text-zinc-600 dark:text-zinc-300 text-left cursor-default">
             Total Balance
@@ -210,63 +209,99 @@ export const PortfolioSummary = ({
           </div>
         </div>
 
-        {/* ПЕРЕКЛЮЧАТЕЛЬ + ВОЗВРАЩЕННАЯ МЕТКА 7D */}
+        {/* Performance/Assets Switch + 7D tag */}
         <div className="flex items-center gap-4 w-full sm:w-auto">
-          <div
-            className={`flex p-1 rounded-2xl border thick-glass ${theme === "dark" ? "bg-black/20 border-white/10" : "bg-white/40 border-slate-200"}`}
+          {isChartOpen && (
+            <>
+              <div
+                className={`flex p-1 rounded-2xl border thick-glass ${theme === "dark" ? "bg-black/20 border-white/10" : "bg-white/40 border-slate-200"}`}
+              >
+                <button
+                  onClick={() => setActiveView("chart")}
+                  className={`px-5 py-2.5 text-[11px] font-black uppercase tracking-widest transition-all rounded-xl cursor-pointer ${activeView === "chart" ? (theme === "dark" ? "bg-white/10 text-white shadow-lg" : "bg-white text-black shadow-md") : "text-zinc-500"}`}
+                >
+                  Performance
+                </button>
+                <button
+                  onClick={() => setActiveView("distribution")}
+                  className={`px-5 py-2.5 text-[11px] font-black uppercase tracking-widest transition-all rounded-xl cursor-pointer ${activeView === "distribution" ? (theme === "dark" ? "bg-white/10 text-white shadow-lg" : "bg-white text-black shadow-md") : "text-zinc-500"}`}
+                >
+                  Assets
+                </button>
+              </div>
+              <div
+                className={`flex items-center justify-center px-5 py-3 text-sm font-black transition-all border uppercase shadow-sm cursor-default rounded-2xl backdrop-blur-2xl ${theme === "dark" ? "border-white/10 bg-slate-800/60 text-white/90" : "border-slate-200 bg-white/80 text-slate-700"}`}
+              >
+                7d Chart
+              </div>
+            </>
+          )}
+          <button
+            onClick={() => setIsChartOpen(!isChartOpen)}
+            className={`flex p-3 rounded-2xl border thick-glass ${theme === "dark" ? "bg-black/20 border-white/10" : "bg-white/40 border-slate-200"}`}
+            title={isChartOpen ? "Hide Chart" : "Show Chart"}
           >
-            <button
-              onClick={() => setActiveView("chart")}
-              className={`px-5 py-2.5 text-[11px] font-black uppercase tracking-widest transition-all rounded-xl cursor-pointer ${activeView === "chart" ? (theme === "dark" ? "bg-white/10 text-white shadow-lg" : "bg-white text-black shadow-md") : "text-zinc-500"}`}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`transition-transform duration-300 ${isChartOpen ? "" : "rotate-180"}`}
             >
-              Performance
-            </button>
-            <button
-              onClick={() => setActiveView("distribution")}
-              className={`px-5 py-2.5 text-[11px] font-black uppercase tracking-widest transition-all rounded-xl cursor-pointer ${activeView === "distribution" ? (theme === "dark" ? "bg-white/10 text-white shadow-lg" : "bg-white text-black shadow-md") : "text-zinc-500"}`}
-            >
-              Assets
-            </button>
-          </div>
-          {/* ВОТ ОНА! Статичная метка времени, как на ПК */}
-          <div
-            className={`flex items-center justify-center px-5 py-3 text-sm font-black transition-all border uppercase shadow-sm cursor-default rounded-2xl backdrop-blur-2xl ${theme === "dark" ? "border-white/10 bg-slate-800/60 text-white/90" : "border-slate-200 bg-white/80 text-slate-700"}`}
-          >
-            7D
-          </div>
+              {/* Arrow icon */}
+              <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+          </button>
         </div>
       </div>
 
-      {/* УВЕЛИЧЕННАЯ ВЫСОТА КОНТЕЙНЕРА (h-80 вместо h-64) */}
-      <div className="h-80 w-full relative flex items-center justify-center overflow-visible">
-        {activeView === "chart" ? (
-          <>
-            <svg
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              className="w-full h-full overflow-visible animate-content-reveal"
-            >
-              <defs>
-                <linearGradient id="chartFade" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={color} stopOpacity="0.1" />
-                  <stop offset="100%" stopColor={color} stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <path d={`${pathD} L 100 100 L 0 100 Z`} fill="url(#chartFade)" />
-              <path
-                d={pathD}
-                fill="none"
-                stroke={color}
-                strokeWidth="3"
-                style={{ vectorEffect: "non-scaling-stroke" }}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </>
-        ) : (
-          <DonutChart data={distributionData} />
-        )}
+      <div
+        className={`grid transition-all duration-500 ease-in-out ${
+          isChartOpen
+            ? "grid-rows-[1fr] opacity-100"
+            : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="h-80 w-full relative flex items-center justify-center overflow-visible">
+            {activeView === "chart" ? (
+              <>
+                <svg
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                  className="w-full h-full overflow-visible animate-content-reveal"
+                >
+                  <defs>
+                    <linearGradient id="chartFade" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={color} stopOpacity="0.1" />
+                      <stop offset="100%" stopColor={color} stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d={`${pathD} L 100 100 L 0 100 Z`}
+                    fill="url(#chartFade)"
+                  />
+                  <path
+                    d={pathD}
+                    fill="none"
+                    stroke={color}
+                    strokeWidth="3"
+                    style={{ vectorEffect: "non-scaling-stroke" }}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </>
+            ) : (
+              <DonutChart data={distributionData} />
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

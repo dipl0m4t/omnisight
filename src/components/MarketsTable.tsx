@@ -16,7 +16,7 @@ interface MarketsTableProps {
   favorites: string[];
   toggleFavorite: (id: string) => void;
   itemsPerPage: number;
-  loading: boolean; // <-- ВОТ НАШ ПРОПС ЗАГРУЗКИ
+  loading: boolean;
 }
 
 export const MarketsTable = ({
@@ -36,7 +36,6 @@ export const MarketsTable = ({
   return (
     <div className="w-full overflow-x-auto hide-scrollbar pb-2">
       <table className="w-full text-left border-collapse table-fixed min-w-[900px]">
-        {/*  */}
         <thead>
           <tr>
             <th className={`${tableHeaderClass} w-14`}></th>
@@ -84,9 +83,9 @@ export const MarketsTable = ({
         </thead>
 
         <tbody className="divide-y divide-zinc-100 dark:divide-white/[0.03]">
-          {/* === ЛОГИКА ОТОБРАЖЕНИЯ === */}
+          {/* === DISPLAY LOGIC === */}
           {loading ? (
-            // 1. ЕСЛИ ИДЕТ ЗАГРУЗКА
+            // IF LOADING
             <tr>
               <td colSpan={6} className="py-24 text-center">
                 <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest animate-pulse">
@@ -95,7 +94,7 @@ export const MarketsTable = ({
               </td>
             </tr>
           ) : currentCoins.length === 0 ? (
-            // 2. ЕСЛИ ЗАГРУЗКА ПРОШЛА, НО МОНЕТ НЕТ
+            // IF LOADING IS DONE, BUT NO COINS
             <tr>
               <td colSpan={6} className="py-24 text-center">
                 <div className="flex flex-col items-center justify-center gap-2">
@@ -106,7 +105,7 @@ export const MarketsTable = ({
               </td>
             </tr>
           ) : (
-            // 3. ЕСЛИ ВСЕ ОТЛИЧНО И ЕСТЬ ДАННЫЕ — РИСУЕМ ТАБЛИЦУ
+            // IF EVERYTHING'S PERFECT AND WE HAVE THE DATA — DRAW THE TABLE
             currentCoins.map((coin) => {
               const isNeg = (coin.price_change_percentage_24h ?? 0) < 0;
               const sparkline = coin.sparkline_in_7d?.price;
@@ -188,6 +187,7 @@ export const MarketsTable = ({
                   <td className={tableCellClass}>
                     <div className="flex justify-end">
                       <SparklineChart
+                        key={`${coin.id}-${currentCoins.length}-${sortKey}-${sortDirection}`}
                         d={generateSparklinePath(sparkline)}
                         color={is7dNeg ? "#ef4444" : "#10b981"}
                       />
@@ -198,7 +198,7 @@ export const MarketsTable = ({
             })
           )}
 
-          {/* Распорки для пустых строк (показываем только если НЕ загрузка и есть монеты, но их меньше 10) */}
+          {/* Spacers for empty lines (only show if NOT loading and there are coins but there are less then 10 of em ) */}
           {!loading &&
             currentCoins.length > 0 &&
             currentCoins.length < itemsPerPage &&

@@ -19,7 +19,7 @@ app.get("/api/portfolio", async (req, res) => {
     res.json(items);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Ошибка при получении данных из БД" });
+    res.status(500).json({ error: "Error retrieving data from the database" });
   }
 });
 
@@ -32,7 +32,7 @@ app.post("/api/portfolio", async (req, res) => {
 
     // 2. Проверяем, всё ли пришло (базовая защита)
     if (!coinId || amount === undefined || buyPrice === undefined) {
-      return res.status(400).json({ error: "Не все поля заполнены!" });
+      return res.status(400).json({ error: "Not all fields are filled in!" });
     }
 
     // 3. Даем команду Призме создать строку в таблице PortfolioItem
@@ -47,8 +47,8 @@ app.post("/api/portfolio", async (req, res) => {
     // 4. Отправляем успешно созданную запись обратно в браузер
     res.status(201).json(newAsset);
   } catch (error) {
-    console.error("Ошибка при сохранении актива:", error);
-    res.status(500).json({ error: "Не удалось сохранить актив в базу данных" });
+    console.error("Error saving asset:", error);
+    res.status(500).json({ error: "Failed to save asset to database" });
   }
 });
 
@@ -70,8 +70,8 @@ app.put("/api/portfolio/:id", async (req, res) => {
     // Отправляем обновленную запись обратно на фронтенд
     res.status(200).json(updatedAsset);
   } catch (error) {
-    console.error("Ошибка при обновлении актива:", error);
-    res.status(500).json({ error: "Не удалось обновить актив" });
+    console.error("Error updating asset:", error);
+    res.status(500).json({ error: "Failed to update asset" });
   }
 });
 
@@ -92,12 +92,12 @@ app.delete("/api/portfolio/:id", async (req, res) => {
     // 3. Отправляем успешный статус (200 OK)
     res.status(200).json({ message: "Asset deleted successfully" });
   } catch (error) {
-    console.error("Ошибка при удалении актива:", error);
-    res.status(500).json({ error: "Не удалось удалить актив" });
+    console.error("Error deleting asset:", error);
+    res.status(500).json({ error: "Failed to delete asset" });
   }
 });
 
 // [RU] Запускаем сервер на порту 3001
 app.listen(3001, () => {
-  console.log("🚀 API Сервер запущен на http://localhost:3001");
+  console.log("🚀 API Server is running on http://localhost:3001");
 });

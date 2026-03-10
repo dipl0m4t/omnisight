@@ -11,10 +11,10 @@ export const ThemeToggle = () => {
       return;
     }
 
-    // 1. Берем размеры и позицию самой кнопки
+    // 1. Take the sizes and position of the button
     const rect = e.currentTarget.getBoundingClientRect();
 
-    // 2. Вычисляем координаты ИДЕАЛЬНОГО центра кнопки
+    // 2. Calculate the coordinates of the PERFECT button center
     const x = rect.left + rect.width / 2;
     const y = rect.top + rect.height / 2;
 
@@ -27,7 +27,7 @@ export const ThemeToggle = () => {
     document.documentElement.style.setProperty("--click-y", `${y}px`);
     document.documentElement.style.setProperty("--circle-r", `${endRadius}px`);
 
-    // [RU] Если сейчас темная тема, мы переключаемся на светлую -> нужно сужение
+    // If it's currently a dark theme, switch to a light one -> need to narrow it down
     const isSwitchingToDark = theme === "light";
 
     document.documentElement.classList.add("theme-transition");

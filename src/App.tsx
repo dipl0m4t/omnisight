@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { PortfolioSummary } from "./components/PortfolioSummary";
 import "./App.css";
 
-// --- ТИПЫ И УТИЛИТЫ ---
+// --- TYPE & UTILS ---
 import type { MarketRow, PortfolioItem } from "./types/crypto";
 import { useTheme } from "./components/theme/ThemeContext";
 
-// --- КОМПОНЕНТЫ ---
+// --- COMPONENTS ---
 import BackgroundGeometry from "./components/BackgroundGeometry";
 import { Header } from "./components/Header";
 import { ControlBar } from "./components/ControlBar";
@@ -72,7 +72,7 @@ function App() {
   const [sortDirection, setSortDirection] = useState("desc");
 
   // ==========================================
-  // 2. EFFECTS & LIFECYCLES (ЭФФЕКТЫ)
+  // 2. EFFECTS & LIFECYCLES
   // ==========================================
   useEffect(() => {
     let ticking = false;
@@ -94,53 +94,73 @@ function App() {
   }, [favorites]);
 
   useEffect(() => {
-    let cancelled = false;
+    // Create the controller to cancel a request
+    const controller = new AbortController();
+
     async function load(isFirstTime = false) {
       try {
         if (isFirstTime) setLoading(true);
         const res = await fetch(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true",
+          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=true",
+          { signal: controller.signal }, // Linking fetch to the controller
         );
         const data = await res.json();
 
-        if (!cancelled) {
-          // 🛡️ ЗАЩИТА: Проверяем, точно ли CoinGecko вернул массив
-          if (Array.isArray(data)) {
-            setMarkets(data);
-            setError(null);
-          } else {
-            // Если вернул ошибку лимита - показываем красное предупреждение сверху
-            setError("API RATE LIMIT: Wait a bit please...");
-          }
+        if (Array.isArray(data)) {
+          setMarkets(data);
+          setError(null);
+        } else {
+          setError(
+            "API RATE LIMIT: Wait a bit and then refresh the page please.",
+          );
         }
-      } catch {
-        if (!cancelled) setError("SYNC_ERROR");
+      } catch (error: any) {
+        // If the request was killed by us (AbortError), we simply ignore the error
+        if (error.name === "AbortError") return;
+        setError("SYNC_ERROR");
       } finally {
-        if (!cancelled) setLoading(false);
+        // Remove the download only if the component is still alive.
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
     load(true);
     const intervalId = setInterval(() => load(false), 60000);
+
     return () => {
-      cancelled = true;
+      // CLEANER: Kill the current request and stop the timer
+      controller.abort();
       clearInterval(intervalId);
     };
   }, []);
 
   useEffect(() => {
+    // Create cancel controller
+    const controller = new AbortController();
+
     async function fetchPortfolio() {
       try {
-        const res = await fetch("http://localhost:3001/api/portfolio");
+        const res = await fetch("http://localhost:3001/api/portfolio", {
+          signal: controller.signal, // Bind the signal
+        });
         if (!res.ok) throw new Error("Failed to fetch");
+
         const data = await res.json();
         setPortfolio(data);
-      } catch (error) {
-        console.error("SYNC_ERROR: Не удалось загрузить портфель из БД", error);
+      } catch (error: any) {
+        // Die quietly if the loading was interrupted intentionally
+        if (error.name === "AbortError") return;
+        console.error(
+          "SYNC_ERROR: Failed to load portfolio from database",
+          error,
+        );
       }
     }
     fetchPortfolio();
+
+    return () => controller.abort();
   }, []);
 
+  // Debounce-search for modal form (500ms delay for Rate Limit protection)
   useEffect(() => {
     if (modalSearchQuery.length < 2) {
       setSearchResults([]);
@@ -155,7 +175,7 @@ function App() {
         const data = await res.json();
         setSearchResults(data.coins ? data.coins.slice(0, 5) : []);
       } catch (error) {
-        console.error("Ошибка поиска монеты:", error);
+        console.error("Coin search error:", error);
       } finally {
         setIsSearching(false);
       }
@@ -164,7 +184,7 @@ function App() {
   }, [modalSearchQuery]);
 
   // ==========================================
-  // 3. DATA PROCESSING (ФИЛЬТРАЦИЯ И СОРТИРОВКА)
+  // 3. DATA PROCESSING (FILTRATION AND SORTING)
   // ==========================================
   const filteredMarkets = markets.filter((coin) => {
     if (showFavoritesOnly && !favorites.includes(coin.id)) return false;
@@ -217,7 +237,7 @@ function App() {
     const currentPriceB = marketMap.get(b.coinId)?.current_price ?? 0;
 
     const valueA = (() => {
-      if (sortKey === "name") return marketMap.get(b.coinId)?.name || "";
+      if (sortKey === "name") return marketMap.get(a.coinId)?.name || "";
       if (sortKey === "value") return a.amount * currentPriceA;
       if (sortKey === "invested") return a.amount * a.buyPrice;
       if (sortKey === "profit_loss")
@@ -226,7 +246,7 @@ function App() {
     })();
 
     const valueB = (() => {
-      if (sortKey === "name") return marketMap.get(a.coinId)?.name || "";
+      if (sortKey === "name") return marketMap.get(b.coinId)?.name || "";
       if (sortKey === "value") return b.amount * currentPriceB;
       if (sortKey === "invested") return b.amount * b.buyPrice;
       if (sortKey === "profit_loss")
@@ -249,9 +269,10 @@ function App() {
   const currentPortfolio = sortedPortfolio.slice(startIndex, endIndex);
   const totalItems =
     activeTab === "markets" ? filteredMarkets.length : filteredPortfolio.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   // ==========================================
-  // 4. EVENT HANDLERS (ОБРАБОТЧИКИ)
+  // 4. EVENT HANDLERS
   // ==========================================
   const toggleFavorite = (id: string) =>
     setFavorites((prev) =>
@@ -272,7 +293,6 @@ function App() {
   const handleAddAsset = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 1. Рассчитываем количество монет: (вложенные деньги / цена покупки)
     const investedAmount = Number(newAsset.invested);
     const buyPrice = Number(newAsset.buyPrice);
 
@@ -285,16 +305,14 @@ function App() {
 
     const calculatedAmount = investedAmount / buyPrice;
 
-    // 2. Проверяем, есть ли уже такая монета в портфеле
     const existingAsset = portfolio.find((p) => p.coinId === newAsset.coinId);
 
     try {
       if (existingAsset) {
-        // ЕСЛИ МОНЕТА УЖЕ ЕСТЬ: Считаем новую среднюю цену и обновляем
         const currentInvested = existingAsset.amount * existingAsset.buyPrice;
         const totalInvested = currentInvested + investedAmount;
         const newTotalAmount = existingAsset.amount + calculatedAmount;
-        const averageBuyPrice = totalInvested / newTotalAmount; // Новая средняя цена!
+        const averageBuyPrice = totalInvested / newTotalAmount; // New average price
 
         const res = await fetch(
           `http://localhost:3001/api/portfolio/${existingAsset.id}`,
@@ -308,30 +326,29 @@ function App() {
           },
         );
 
-        if (!res.ok) throw new Error("Ошибка при обновлении БД");
+        if (!res.ok) throw new Error("Error updating database");
         const updatedItem = await res.json();
 
         setPortfolio((prev) =>
           prev.map((item) => (item.id === updatedItem.id ? updatedItem : item)),
         );
       } else {
-        // ЕСЛИ МОНЕТЫ НЕТ: Создаем новую запись
         const res = await fetch("http://localhost:3001/api/portfolio", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             coinId: newAsset.coinId,
-            amount: calculatedAmount, // Отправляем вычисленное количество
+            amount: calculatedAmount,
             buyPrice: buyPrice,
           }),
         });
 
-        if (!res.ok) throw new Error("Ошибка при сохранении в БД");
+        if (!res.ok) throw new Error("Error saving to DB");
         const addedItem = await res.json();
         setPortfolio((prev) => [...prev, addedItem]);
       }
 
-      // Сбрасываем модалку
+      // Reset the modal
       setIsAddModalOpen(false);
       setNewAsset({ coinId: "", invested: "", buyPrice: "" });
       setModalSearchQuery("");
@@ -346,7 +363,7 @@ function App() {
     e.preventDefault();
     if (!editingAsset) return;
 
-    // Рассчитываем новое количество монет
+    // Calculate new amount of coins
     const investedAmount = Number(editingAsset.invested);
     const buyPrice = Number(editingAsset.buyPrice);
 
@@ -361,12 +378,12 @@ function App() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            amount: calculatedAmount, // Отправляем вычисленное количество
+            amount: calculatedAmount, // Send the calculated amount
             buyPrice: buyPrice,
           }),
         },
       );
-      if (!res.ok) throw new Error("Ошибка БД");
+      if (!res.ok) throw new Error("Database error");
       const updatedItem = await res.json();
 
       setPortfolio((prev) =>
@@ -387,7 +404,7 @@ function App() {
         `http://localhost:3001/api/portfolio/${assetToDelete}`,
         { method: "DELETE" },
       );
-      if (!res.ok) throw new Error("Ошибка БД");
+      if (!res.ok) throw new Error("Database error");
       setPortfolio((prev) => prev.filter((item) => item.id !== assetToDelete));
       setAssetToDelete(null);
     } catch (error) {
@@ -396,7 +413,7 @@ function App() {
   };
 
   // ==========================================
-  // 5. RENDER ИНТЕРФЕЙСА
+  // 5. INTERFACE RENDER
   // ==========================================
   return (
     <div
@@ -430,7 +447,7 @@ function App() {
         <div
           className={`border thick-glass refractive-distortion overflow-hidden rounded-[24px] transition-all animate-content-reveal ${theme === "dark" ? "border-white/[0.05] bg-white/[0.01] shadow-none" : "border-zinc-200 bg-white/70 shadow-2xl shadow-zinc-200/50"}`}
         >
-          {/* Переключатель избранного для Markets */}
+          {/* Favorite Toggle */}
           {activeTab === "markets" && (
             <div className="flex items-center gap-4 px-6 py-4 border-b border-zinc-100 dark:border-white/[0.05]">
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-500">
@@ -470,7 +487,7 @@ function App() {
             />
           ) : (
             <div className="flex flex-col gap-6">
-              {/* НАШ НОВЫЙ ДАШБОРД */}
+              {/* NEW DASHBOARD */}
               <PortfolioSummary
                 portfolio={portfolio}
                 marketMap={marketMap}
@@ -488,33 +505,22 @@ function App() {
               />
             </div>
           )}
-
-          <TablePagination
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            endIndex={endIndex}
-            totalItems={totalItems}
-            theme={theme}
-          />
+          {totalPages > 1 && (
+            <TablePagination
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+              endIndex={endIndex}
+              totalItems={totalItems}
+              totalPages={totalPages}
+              theme={theme}
+            />
+          )}
         </div>
       </main>
-
-      {/* <footer
-        className={`relative z-10 border-t transition-colors duration-300 py-12 mt-auto text-[12px] font-mono font-bold tracking-[0.4em] uppercase ${theme === "dark" ? "border-white/[0.05] bg-black/60 text-zinc-500" : "border-zinc-200 bg-white/80 text-zinc-600 backdrop-blur-md"}`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex justify-between items-center w-full cursor-default">
-          <span>© {new Date().getFullYear()} OMNISIGHT_TERMINAL</span>
-          <span className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            SYSTEM_STATUS: STABLE
-          </span>
-        </div>
-      </footer> */}
 
       <footer
         className={`relative z-10 border-t transition-colors duration-300 py-8 sm:py-12 mt-auto text-[10px] sm:text-[12px] font-mono font-bold tracking-widest sm:tracking-[0.4em] uppercase ${theme === "dark" ? "border-white/[0.05] bg-black/60 text-zinc-500" : "border-zinc-200 bg-white/80 text-zinc-600 backdrop-blur-md"}`}
       >
-        {/* Изменили flex на flex-col для мобилок и добавили gap-4 */}
         <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row justify-between items-center gap-4 w-full cursor-default text-center">
           <span>© {new Date().getFullYear()} OMNISIGHT</span>
           <span className="flex items-center justify-center gap-2">
@@ -524,7 +530,7 @@ function App() {
         </div>
       </footer>
 
-      {/* ================= МОДАЛКИ (PORTALS) ================= */}
+      {/* ================= MODAL FORMS (PORTALS) ================= */}
       {isAddModalOpen && (
         <AddAssetModal
           theme={theme}

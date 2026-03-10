@@ -3,6 +3,7 @@ interface PaginationProps {
   setCurrentPage: (page: number | ((prev: number) => number)) => void;
   endIndex: number;
   totalItems: number;
+  totalPages: number;
   theme: string;
 }
 
@@ -11,6 +12,7 @@ export const TablePagination = ({
   setCurrentPage,
   endIndex,
   totalItems,
+  totalPages,
   theme,
 }: PaginationProps) => {
   const tableFooterClass = `border-t border-zinc-100 dark:border-white/[0.05] bg-zinc-50/50 dark:bg-white/[0.02] py-4 px-6 flex justify-end items-center gap-3 rounded-b-xl`;
@@ -18,7 +20,7 @@ export const TablePagination = ({
   return (
     <div className={tableFooterClass}>
       <span className="text-sm text-gray-500 font-bold self-center pr-4 tracking-[0.2em] uppercase">
-        Page {currentPage}
+        Page {currentPage} / {totalPages}
       </span>
       <button
         onClick={() => setCurrentPage((prev) => prev - 1)}
