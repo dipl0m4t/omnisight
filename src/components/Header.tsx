@@ -53,12 +53,15 @@ export const Header = ({
               >
                 MARKETS
               </button>
-              <a
-                href="#"
-                className="hover:text-black dark:hover:text-white transition-all"
+              <button
+                onClick={() => {
+                  setActiveTab("analytics");
+                  setCurrentPage(1);
+                }}
+                className={`hover:text-black dark:hover:text-white transition-all cursor-pointer ${activeTab === "analytics" ? "text-black dark:text-white" : ""}`}
               >
                 ANALYTICS
-              </a>
+              </button>
               <button
                 onClick={() => {
                   setActiveTab("portfolio");
@@ -124,15 +127,20 @@ export const Header = ({
               >
                 MARKETS
               </button>
-              <a
-                href="#"
-                className="hover:text-black dark:hover:text-white transition-all"
+              <button
+                onClick={() => {
+                  setActiveTab("analytics");
+                  setCurrentPage(1);
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`hover:text-black dark:hover:text-white transition-all cursor-pointer ${activeTab === "markets" ? "text-black dark:text-white" : ""}`}
               >
                 ANALYTICS
-              </a>
+              </button>
               <button
                 onClick={() => {
                   setActiveTab("portfolio");
+                  setCurrentPage(1);
                   setIsMobileMenuOpen(false);
                 }}
                 className={`hover:text-black dark:hover:text-white transition-all cursor-pointer ${activeTab === "portfolio" ? "text-black dark:text-white" : ""}`}

@@ -34,7 +34,7 @@ export const MarketsTable = ({
   const tableCellClass = "px-6 py-5 transition-colors";
 
   return (
-    <div className="w-full overflow-x-auto hide-scrollbar pb-2">
+    <div className="w-full overflow-x-auto animate-content-reveal hide-scrollbar pb-2">
       <table className="w-full text-left border-collapse table-fixed min-w-[900px]">
         <thead>
           <tr>

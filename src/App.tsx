@@ -18,6 +18,16 @@ import {
   EditAssetModal,
   DeleteModal,
 } from "./components/Modals";
+import {
+  FearAndGreedWidget,
+  MarketCapWidget,
+  DominanceWidget,
+  BtcOpenInterestWidget,
+  BtcFundingWidget,
+  DefiWidget,
+  TrendingWidget,
+  BtcFeesWidget,
+} from "./components/AnalyticsWidgets";
 
 function App() {
   // ==========================================
@@ -268,7 +278,11 @@ function App() {
   const currentCoins = sortedMarkets.slice(startIndex, endIndex);
   const currentPortfolio = sortedPortfolio.slice(startIndex, endIndex);
   const totalItems =
-    activeTab === "markets" ? filteredMarkets.length : filteredPortfolio.length;
+    activeTab === "markets"
+      ? filteredMarkets.length
+      : activeTab === "portfolio"
+        ? filteredPortfolio.length
+        : 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   // ==========================================
@@ -449,7 +463,7 @@ function App() {
         >
           {/* Favorite Toggle */}
           {activeTab === "markets" && (
-            <div className="flex items-center gap-4 px-6 py-4 border-b border-zinc-100 dark:border-white/[0.05]">
+            <div className="flex items-center gap-4 px-6 py-4 border-b border-zinc-100 dark:border-white/[0.05] animate-content-reveal">
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-500">
                 Show Favorites
               </span>
@@ -473,7 +487,7 @@ function App() {
             </div>
           )}
 
-          {activeTab === "markets" ? (
+          {activeTab === "markets" && (
             <MarketsTable
               theme={theme}
               currentCoins={currentCoins}
@@ -485,7 +499,8 @@ function App() {
               toggleFavorite={toggleFavorite}
               itemsPerPage={itemsPerPage}
             />
-          ) : (
+          )}
+          {activeTab === "portfolio" && (
             <div className="flex flex-col gap-6">
               {/* NEW DASHBOARD */}
               <PortfolioSummary
@@ -503,6 +518,25 @@ function App() {
                 setIsEditModalOpen={setIsEditModalOpen}
                 setAssetToDelete={setAssetToDelete}
               />
+            </div>
+          )}
+          {activeTab === "analytics" && (
+            <div className="p-8 min-h-[500px]">
+              <h2 className="text-2xl font-black tracking-widest uppercase mb-8">
+                Market Analytics
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-20 lg:grid-cols-20 xl:grid-cols-20 gap-6">
+                <FearAndGreedWidget theme={theme} />
+                <MarketCapWidget theme={theme} />
+                <DominanceWidget theme={theme} />
+
+                <BtcOpenInterestWidget theme={theme} />
+                <BtcFundingWidget theme={theme} />
+                <BtcFeesWidget theme={theme} />
+
+                <TrendingWidget theme={theme} />
+                <DefiWidget theme={theme} />
+              </div>
             </div>
           )}
           {totalPages > 1 && (

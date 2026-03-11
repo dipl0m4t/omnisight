@@ -238,7 +238,7 @@ export const PortfolioSummary = ({
           )}
           <button
             onClick={() => setIsChartOpen(!isChartOpen)}
-            className={`flex p-3 rounded-2xl border thick-glass ${theme === "dark" ? "bg-black/20 border-white/10" : "bg-white/40 border-slate-200"}`}
+            className={`flex p-3 rounded-2xl border thick-glass active:scale-90 hover:brightness-110 rounded-full cursor-pointer ${theme === "dark" ? "bg-black/20 border-white/10" : "bg-white/40 border-slate-200"}`}
             title={isChartOpen ? "Hide Chart" : "Show Chart"}
           >
             <svg
