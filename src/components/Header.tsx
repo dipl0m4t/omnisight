@@ -133,7 +133,7 @@ export const Header = ({
                   setCurrentPage(1);
                   setIsMobileMenuOpen(false);
                 }}
-                className={`hover:text-black dark:hover:text-white transition-all cursor-pointer ${activeTab === "markets" ? "text-black dark:text-white" : ""}`}
+                className={`hover:text-black dark:hover:text-white transition-all cursor-pointer ${activeTab === "analytics" ? "text-black dark:text-white" : ""}`}
               >
                 ANALYTICS
               </button>

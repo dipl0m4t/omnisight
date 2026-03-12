@@ -22,7 +22,7 @@ import {
   FearAndGreedWidget,
   MarketCapWidget,
   DominanceWidget,
-  BtcOpenInterestWidget,
+  OpenInterestWidget,
   BtcFundingWidget,
   DefiWidget,
   TrendingWidget,
@@ -500,9 +500,28 @@ function App() {
               itemsPerPage={itemsPerPage}
             />
           )}
+          {activeTab === "analytics" && (
+            <div className="p-8 min-h-[500px] cursor-default">
+              <h2 className="text-2xl font-black tracking-widest uppercase mb-8">
+                Market Analytics
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-20 lg:grid-cols-20 xl:grid-cols-20 gap-6">
+                <FearAndGreedWidget theme={theme} />
+                <MarketCapWidget theme={theme} />
+                <DominanceWidget theme={theme} />
+
+                <OpenInterestWidget theme={theme} />
+                <BtcFundingWidget theme={theme} />
+                <BtcFeesWidget theme={theme} />
+
+                <TrendingWidget theme={theme} />
+                <DefiWidget theme={theme} />
+              </div>
+            </div>
+          )}
           {activeTab === "portfolio" && (
             <div className="flex flex-col gap-6">
-              {/* NEW DASHBOARD */}
+              {/* DASHBOARD */}
               <PortfolioSummary
                 portfolio={portfolio}
                 marketMap={marketMap}
@@ -518,25 +537,6 @@ function App() {
                 setIsEditModalOpen={setIsEditModalOpen}
                 setAssetToDelete={setAssetToDelete}
               />
-            </div>
-          )}
-          {activeTab === "analytics" && (
-            <div className="p-8 min-h-[500px]">
-              <h2 className="text-2xl font-black tracking-widest uppercase mb-8">
-                Market Analytics
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-20 lg:grid-cols-20 xl:grid-cols-20 gap-6">
-                <FearAndGreedWidget theme={theme} />
-                <MarketCapWidget theme={theme} />
-                <DominanceWidget theme={theme} />
-
-                <BtcOpenInterestWidget theme={theme} />
-                <BtcFundingWidget theme={theme} />
-                <BtcFeesWidget theme={theme} />
-
-                <TrendingWidget theme={theme} />
-                <DefiWidget theme={theme} />
-              </div>
             </div>
           )}
           {totalPages > 1 && (

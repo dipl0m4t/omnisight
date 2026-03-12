@@ -24,7 +24,7 @@ export const ControlBar = ({
   setCurrentPage,
 }: ControlBarProps) => {
   return (
-    <div className="relative mb-6 sm:mb-10 flex flex-col gap-3">
+    <div className="relative mb-6 sm:mb-10 flex flex-col gap-3 cursor-default">
       <div
         className={`absolute -inset-y-6 -inset-x-10 z-0 blur-3xl transition-colors duration-500 pointer-events-none rounded-full ${theme === "dark" ? "bg-black/70" : "bg-white/80"}`}
       ></div>

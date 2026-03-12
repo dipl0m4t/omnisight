@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  // [RU] В 6-й версии это СНОВА РАБОТАЕТ и это нормально!
   url      = env("DATABASE_URL")
 }
 
