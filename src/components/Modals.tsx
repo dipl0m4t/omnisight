@@ -65,7 +65,7 @@ export const AddAssetModal = ({
       </h3>
 
       <form onSubmit={handleAddAsset} className="flex flex-col gap-5 font-mono">
-        {/* 1. Smart asset search */}
+        {/* Smart asset search */}
         <div className="flex flex-col gap-2 relative">
           <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
             Search Asset
@@ -140,7 +140,7 @@ export const AddAssetModal = ({
           )}
         </div>
 
-        {/* 2. Invested Amount */}
+        {/* Invested Amount */}
         <div className="flex flex-col gap-2">
           <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
             Invested Amount (USD)
@@ -164,7 +164,7 @@ export const AddAssetModal = ({
           />
         </div>
 
-        {/* 3. Buy Price */}
+        {/* Buy Price */}
         <div className="flex flex-col gap-2">
           <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
             Buy Price (USD)
@@ -184,7 +184,7 @@ export const AddAssetModal = ({
           />
         </div>
 
-        {/* 4. Control Buttons */}
+        {/* Control Buttons */}
         <div className="flex gap-4 mt-4 pt-4 border-t border-zinc-200 dark:border-white/10">
           <button
             type="button"
@@ -210,7 +210,7 @@ export const AddAssetModal = ({
   </div>
 );
 
-// 3. Editing Modal
+// Editing Modal
 export const EditAssetModal = ({
   theme,
   editingAsset,

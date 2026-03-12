@@ -11,10 +11,10 @@ export const ThemeToggle = () => {
       return;
     }
 
-    // 1. Take the sizes and position of the button
+    // Take the sizes and position of the button
     const rect = e.currentTarget.getBoundingClientRect();
 
-    // 2. Calculate the coordinates of the PERFECT button center
+    // Calculate the coordinates of the PERFECT button center
     const x = rect.left + rect.width / 2;
     const y = rect.top + rect.height / 2;
 

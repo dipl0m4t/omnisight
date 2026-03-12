@@ -1,13 +1,9 @@
-/* src/index.css */
-
-/* [EN] TYPOGRAPHY: Importing professional fonts for the "Terminal" aesthetic. */
-/* [RU] ТИПОГРАФИКА: Импорт профессиональных шрифтов для эстетики "Терминала". */
+/* TYPOGRAPHY: Importing professional fonts for the "Terminal" aesthetic. */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap");
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* [EN] THEME CONFIG: Defining custom font variables for Tailwind v4. */
-/* [RU] КОНФИГУРАЦИЯ ТЕМЫ: Определение кастомных переменных шрифтов для Tailwind v4. */
+/* THEME CONFIG: Defining custom font variables for Tailwind v4. */
 @theme {
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
@@ -20,42 +16,38 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* ============================================================
-   [EN] GLASSMORPHISM SYSTEM (SYSTEMA GLASSMORFIZMA)
-   [RU] СИСТЕМА ГЛАССМОРФИЗМА
-   ============================================================ */
+/* 
+============================================================
+GLASSMORPHISM SYSTEM
+============================================================ 
+*/
 
-/* [EN] CORE GLASS CLASS: The blur and saturation create the "frosted glass" effect. */
-/* [RU] ОСНОВНОЙ КЛАСС СТЕКЛА: Размытие и насыщенность создают эффект "матового стекла". */
+/* CORE GLASS CLASS: The blur and saturation create the "frosted glass" effect. */
 .thick-glass {
   position: relative;
   backdrop-filter: blur(40px) saturate(210%) brightness(1.1);
   -webkit-backdrop-filter: blur(40px) saturate(210%) brightness(1.1);
 }
 
-/* [EN] INNER BORDERS: Using ::after to create a "3D lens" effect with top-light highlights. */
-/* [RU] ВНУТРЕННИЕ РАМКИ: Используем ::after для создания эффекта "3D линзы" с бликами сверху. */
+/* INNER BORDERS: Using ::after to create a "3D lens" effect with top-light highlights. */
 .thick-glass::after {
   content: "";
   position: absolute;
   inset: 0;
-  /* [EN] Key Secret: Lighter top/left borders simulate a light source from the top. */
-  /* [RU] Главный секрет: Светлые рамки сверху и слева имитируют источник света сверху. */
+  /* Key Secret: Lighter top/left borders simulate a light source from the top. */
   border-top: 1px solid rgba(255, 255, 255, 0.4);
   border-left: 1px solid rgba(255, 255, 255, 0.2);
   border-right: 1px solid rgba(0, 0, 0, 0.1);
   border-bottom: 1.5px solid rgba(0, 0, 0, 0.2);
   border-radius: inherit;
   pointer-events: none;
-  /* [EN] Inner shadow creates depth (lens effect). */
-  /* [RU] Внутренняя тень создает глубину (эффект линзы). */
+  /* Inner shadow creates depth (lens effect). */
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.3),
     inset 0 -1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* [EN] TOP GLOSS: A subtle gradient to mimic premium Apple-style glass. */
-/* [RU] ВЕРХНИЙ БЛИК: Тонкий градиент для имитации премиального стекла в стиле Apple. */
+/* TOP GLOSS: A subtle gradient to mimic premium Apple-style glass. */
 .thick-glass::before {
   content: "";
   position: absolute;
@@ -69,8 +61,7 @@ body {
   border-radius: inherit;
 }
 
-/* [EN] INTERACTION: Smooth transition for hover and click states. */
-/* [RU] ВЗАИМОДЕЙСТВИЕ: Плавный переход для состояний наведения и клика. */
+/* INTERACTION: Smooth transition for hover and click states. */
 .thick-glass.active-press {
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -85,13 +76,13 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* ============================================================
-   [EN] ANIMATIONS (ANIMATSII)
-   [RU] АНИМАЦИИ
-   ============================================================ */
+/* 
+============================================================
+ANIMATIONS
+============================================================ 
+*/
 
-/* [EN] CONTENT REVEAL: Elements slide up and blur out for a smooth entry. */
-/* [RU] ПРОЯВЛЕНИЕ КОНТЕНТА: Элементы выезжают вверх и размываются для плавного появления. */
+/* CONTENT REVEAL: Elements slide up and blur out for a smooth entry. */
 @keyframes contentReveal {
   0% {
     opacity: 0;
@@ -110,8 +101,7 @@ body {
   animation: contentReveal 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
 }
 
-/* [EN] SPARKLINE DRAWING: Animates the chart lines from left to right. */
-/* [RU] ОТРИСОВКА ГРАФИКА: Анимирует линии графиков слева направо. */
+/* SPARKLINE DRAWING: Animates the chart lines from left to right. */
 @keyframes drawLine {
   0% {
     stroke-dashoffset: 300;
@@ -127,37 +117,38 @@ body {
   animation: drawLine 0.5s ease-out forwards;
 }
 
-/* ============================================================
-   [EN] THEME TRANSITIONS (View Transitions API)
-   [RU] ПЕРЕКЛЮЧЕНИЕ ТЕМ (Через View Transitions API)
-   ============================================================ */
+/* 
+============================================================
+THEME TRANSITIONS (View Transitions API)
+============================================================ 
+*/
 
-/* [EN] CIRCLE REVEAL: This creates the "expanding circle" effect when changing themes.
-   We use CSS variables (--click-x, --click-y) passed from JavaScript. */
-/* [RU] КРУГОВОЕ ПРОЯВЛЕНИЕ: Создает эффект "расширяющегося круга" при смене темы.
-   Мы используем CSS-переменные (--click-x, --click-y), переданные из JavaScript. */
+/* 
+CIRCLE REVEAL: This creates the "expanding circle" effect when changing themes.
+We use CSS variables (--click-x, --click-y) passed from JavaScript. 
+*/
 .theme-transition::view-transition-old(root),
 .theme-transition::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
 }
 
-/* 1. ЭФФЕКТ РАСКРЫТИЯ (Expand) - если нет класса shrink */
+/* EXPAND EFFECT - if there is no shrink class */
 .theme-transition:not(.shrink)::view-transition-new(root) {
   animation: reveal-theme 0.4s ease-in-out forwards;
-  z-index: 2; /* Новая тема растет ПОВЕРХ старой */
+  z-index: 2; /* A new theme is growing ON TOP of the old one */
 }
 .theme-transition:not(.shrink)::view-transition-old(root) {
-  z-index: 1; /* Старая тема спокойно лежит внизу */
+  z-index: 1; /* The old theme is at the bottom */
 }
 
-/* 2. ЭФФЕКТ СУЖЕНИЯ (Shrink) - если есть класс shrink */
+/* SHRINK EFFECT - if there is a shrink class */
 .theme-transition.shrink::view-transition-old(root) {
   animation: shrink-theme 0.4s ease-in-out forwards;
-  z-index: 2; /* Старая тема схлопывается ПОВЕРХ новой */
+  z-index: 2; /* The old theme collapses ON TOP of the new one */
 }
 .theme-transition.shrink::view-transition-new(root) {
-  z-index: 1; /* Новая тема уже ждет внизу */
+  z-index: 1; /* A new theme is already waiting below */
 }
 
 @keyframes reveal-theme {
@@ -178,10 +169,11 @@ body {
   }
 }
 
-/* ============================================================
-   [EN] FAVORITES STAR ANIMATION
-   [RU] АНИМАЦИЯ ЗВЕЗДЫ ИЗБРАННОГО
-   ============================================================ */
+/* 
+============================================================
+FAVORITES STAR ANIMATION
+============================================================ 
+*/
 
 @keyframes star-glow {
   0%,
@@ -199,44 +191,48 @@ body {
   animation: star-glow 3s ease-in-out infinite;
 }
 
-/* ========================================== */
-/* КАСТОМНЫЙ СКРОЛЛБАР ДЛЯ ВСЕГО САЙТА       */
-/* ========================================== */
+/* 
+==========================================
+CUSTOM SCROLLBAR FOR THE ENTIRE SITE
+========================================== 
+*/
 
-/* Ширина и высота ползунка */
+/* Slider width and height */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-/* Фон под ползунком (делаем прозрачным) */
+/* Background under the slider (make it transparent) */
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* Сам ползунок */
+/* Slider */
 ::-webkit-scrollbar-thumb {
-  background: rgba(161, 161, 170, 0.3); /* Полупрозрачный серый (zinc-400) */
+  background: rgba(161, 161, 170, 0.3); /* Translucent gray (zinc-400) */
   border-radius: 10px;
 }
 
-/* Ползунок при наведении мыши */
+/* Mouse hover slider */
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 185, 129, 0.8); /* Фирменный изумрудный (emerald-500) */
+  background: rgba(16, 185, 129, 0.8); /* Emerald (emerald-500) */
 }
 
-/* ========================================== */
-/* УБИРАЕМ СТРЕЛОЧКИ У INPUT TYPE="NUMBER"    */
-/* ========================================== */
+/* 
+==========================================
+REMOVE ARROWS FROM INPUT TYPE="NUMBER"
+========================================== 
+*/
 
-/* Для Chrome, Safari, Edge, Opera */
+/* For Chrome, Safari, Edge, Opera */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-/* Для Firefox */
+/* For Firefox */
 input[type="number"] {
   -moz-appearance: textfield;
 }

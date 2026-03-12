@@ -28,6 +28,7 @@ import {
   TrendingWidget,
   BtcFeesWidget,
 } from "./components/AnalyticsWidgets";
+import { LiquidationMapWidget } from "./components/LiquidationMapWidget";
 
 function App() {
   // ==========================================
@@ -127,7 +128,7 @@ function App() {
       } catch (error: any) {
         // If the request was killed by us (AbortError), we simply ignore the error
         if (error.name === "AbortError") return;
-        setError("SYNC_ERROR");
+        activeTab === "markets" && setError("SYNC_ERROR");
       } finally {
         // Remove the download only if the component is still alive.
         if (!controller.signal.aborted) setLoading(false);
@@ -506,6 +507,11 @@ function App() {
                 Market Analytics
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-20 lg:grid-cols-20 xl:grid-cols-20 gap-6">
+                <LiquidationMapWidget
+                  theme={theme}
+                  className="md:col-span-20"
+                />
+
                 <FearAndGreedWidget theme={theme} />
                 <MarketCapWidget theme={theme} />
                 <DominanceWidget theme={theme} />

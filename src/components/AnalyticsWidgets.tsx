@@ -111,7 +111,7 @@ const WidgetCard = ({
           ></div>
 
           <div className="flex justify-between items-center z-10 w-full pr-2">
-            <p className="text-[13px] sm:text-xs font-bold uppercase tracking-[0.2em] text-zinc-400 z-10">
+            <p className="text-[15px] sm:text-[13px] font-bold uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-300 z-10">
               {title}
             </p>
             {action && action}
@@ -131,7 +131,7 @@ const WidgetCard = ({
                 {denominator}
               </span>
               <span
-                className={`text-[13px] sm:text-xs font-bold tracking-widest uppercase leading-none ${colorClass}`}
+                className={`text-[13px] sm:text-xs font-black tracking-widest uppercase leading-none ${colorClass}`}
               >
                 {status}
               </span>
@@ -313,10 +313,10 @@ export const OpenInterestWidget = ({
     data && data.length > 1 ? (
       <button
         onClick={handleNext}
-        className={`px-2.5 py-1 rounded-lg text-[10px] thick-glass font-black cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 ${
+        className={`px-2.5 py-1 rounded-lg text-[12px] thick-glass font-black cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 ${
           theme === "dark"
-            ? "bg-white/10 hover:bg-white/20 text-white"
-            : "bg-black/5 hover:bg-black/10 text-black"
+            ? "bg-white/10 hover:bg-white/20 text-zinc-200"
+            : "bg-black/5 hover:bg-black/10 text-zinc-600"
         }`}
       >
         NEXT <span>➔</span>
@@ -400,10 +400,10 @@ export const BtcFundingWidget = ({
     data && data.length > 1 ? (
       <button
         onClick={handleNext}
-        className={`px-2.5 py-1 rounded-lg text-[10px] thick-glass font-black cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 ${
+        className={`px-2.5 py-1 rounded-lg text-[12px] thick-glass font-black cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 ${
           theme === "dark"
-            ? "bg-white/10 hover:bg-white/20 text-white"
-            : "bg-black/5 hover:bg-black/10 text-black"
+            ? "bg-white/10 hover:bg-white/20 text-zinc-200"
+            : "bg-black/5 hover:bg-black/10 text-zinc-600"
         }`}
       >
         NEXT <span>➔</span>

@@ -84,7 +84,7 @@ export const PortfolioSummary = ({
   const [activeView, setActiveView] = useState<"chart" | "distribution">(
     "chart",
   );
-  const [isChartOpen, setIsChartOpen] = useState(true);
+  const [isChartOpen, setIsChartOpen] = useState(false);
 
   const {
     totalBalance,
@@ -179,7 +179,7 @@ export const PortfolioSummary = ({
 
   return (
     <div
-      className={`p-8 rounded-2xl border backdrop-blur-md shadow-2xl transition-all duration-300 thick-glass ${theme === "dark" ? "bg-slate-900/40 border-white/10 text-white" : "bg-white/60 border-slate-200 text-slate-900"}`}
+      className={`p-8 rounded-2xl border backdrop-blur-md shadow-2xl transition-all duration-300 thick-glass ${theme === "dark" ? "bg-zinc-900/40 border-white/10 " : "bg-white/50 border-zinc-200 text-slate-900"}`}
     >
       <div
         className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 transition-all duration-300 ${isChartOpen ? "mb-8" : "mb-2"}`}

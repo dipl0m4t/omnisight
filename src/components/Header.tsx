@@ -79,12 +79,21 @@ export const Header = ({
             >
               <ThemeToggle />
 
-              {/* DESKTOP: WALLET BUTTON (Hidden on phones by using hidden md:block!) */}
+              {/* DESKTOP: WALLET BUTTON */}
               <button
-                className={`hidden md:block px-6 py-3.5 text-sm font-black transition-all thick-glass refractive-distortion border tracking-widest uppercase shadow-lg active:scale-95 cursor-pointer
+                className={`hidden md:block px-6 py-3.5 text-sm font-black transition-all thick-glass refractive-distortion border tracking-[0.15em] uppercase shadow-lg active:scale-95 cursor-pointer
                 ${theme === "dark" ? "border-white/[0.15] bg-white/[0.05] text-white hover:bg-white/[0.1] rounded-4xl" : "border-zinc-300 bg-white/80 text-black hover:bg-zinc-100 rounded-4xl"}`}
               >
-                [ CONNECT WALLET ]
+                {" "}
+                <span className="text-zinc-400 dark:text-zinc-600 mr-1.5">
+                  [
+                </span>
+                <span className="text-black dark:text-white uppercase">
+                  CONNECT WALLET
+                </span>
+                <span className="text-zinc-400 dark:text-zinc-600 ml-1.5">
+                  ]
+                </span>
               </button>
 
               {/* MOBILE (BURGER-BUTTON) */}
@@ -151,10 +160,14 @@ export const Header = ({
 
             {/* MOBILE: WALLET BUTTON */}
             <button
-              className={`px-4 py-4 min-w-[200px] text-xs font-black transition-all thick-glass refractive-distortion border tracking-widest uppercase shadow-lg active:scale-95 cursor-pointer rounded-4xl
+              className={`px-4 py-4 min-w-[200px] text-xs font-black transition-all thick-glass refractive-distortion border tracking-[0.15em] uppercase shadow-lg active:scale-95 cursor-pointer rounded-4xl
               ${theme === "dark" ? "border-white/[0.15] bg-white/[0.05] text-white" : "border-zinc-300 bg-white/80 text-black"}`}
             >
-              [ CONNECT WALLET ]
+              <span className="text-zinc-400 dark:text-zinc-600 mr-1.5">[</span>
+              <span className="text-black dark:text-white uppercase">
+                CONNECT WALLET
+              </span>
+              <span className="text-zinc-400 dark:text-zinc-600 ml-1.5">]</span>
             </button>
           </div>
         </header>

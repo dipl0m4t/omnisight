@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 export const DonutChart = ({ portfolio, marketMap, theme }: any) => {
   const data = useMemo(() => {
-    // 1. Count general value and data for shares
+    // Count general value and data for shares
     let totalValue = 0;
     const assets = portfolio.map((item: any) => {
       const price = marketMap.get(item.coinId)?.current_price || 0;
@@ -11,7 +11,7 @@ export const DonutChart = ({ portfolio, marketMap, theme }: any) => {
       return { symbol: item.coinId, value };
     });
 
-    // 2. Calculating angles for SVG
+    // Calculating angles for SVG
     let cumulativePercent = 0;
     return assets.map((asset: any) => {
       const percent = (asset.value / totalValue) * 100;

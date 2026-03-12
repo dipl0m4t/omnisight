@@ -5,17 +5,17 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 const app = express();
 
-// [RU] Разрешаем запросы (чтобы React на порту 5173 мог обращаться к серверу на порту 3001)
+// Allow requests (so that React on port 5173 can contact the server on port 3001)
 app.use(cors());
-// [RU] ВАЖНО: Учим Express понимать формат JSON в req.body!
+// IMPORTANT: Teaching Express to understand JSON format in req.body
 app.use(express.json());
 
-// [RU] Создаем маршрут (API endpoint), по которому React будет просить данные
+// Create the route (API endpoint) which React will request data from
 app.get("/api/portfolio", async (req, res) => {
   try {
-    // [RU] Просим Призму достать ВСЕ записи из таблицы PortfolioItem
+    // Ask Prisma to retrieve ALL records from the PortfolioItem table.
     const items = await prisma.portfolioItem.findMany();
-    // [RU] Отправляем их обратно в формате JSON
+    // Send them back in JSON format
     res.json(items);
   } catch (error) {
     console.error(error);
@@ -23,14 +23,14 @@ app.get("/api/portfolio", async (req, res) => {
   }
 });
 
-// [RU] Маршрут для добавления нового актива в базу
-// [RU] Добавление нового актива в базу данных (CREATE)
+// Route for adding new assets in the DB
+// Adding new asset in the DB (CREATE)
 app.post("/api/portfolio", async (req, res) => {
   try {
-    // 1. Вытаскиваем данные, которые прислала наша красивая модалка
+    // Get the data that modal sent to us
     const { coinId, amount, buyPrice } = req.body;
 
-    // 2. Проверяем, всё ли пришло (базовая защита)
+    // Checking if everything has arrived (basic protection)
     if (!coinId || amount === undefined || buyPrice === undefined) {
       return res.status(400).json({ error: "Not all fields are filled in!" });
     }
@@ -52,13 +52,13 @@ app.post("/api/portfolio", async (req, res) => {
   }
 });
 
-// [RU] Обновление актива в базе данных (UPDATE)
+// Update the asset in the DB (UPDATE)
 app.put("/api/portfolio/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { amount, buyPrice } = req.body;
 
-    // Даем команду Призме найти запись по ID и обновить её поля
+    // Give the command to Prisma to find an asset by ID and update its fields
     const updatedAsset = await prisma.portfolioItem.update({
       where: { id: Number(id) },
       data: {
@@ -67,7 +67,7 @@ app.put("/api/portfolio/:id", async (req, res) => {
       },
     });
 
-    // Отправляем обновленную запись обратно на фронтенд
+    // Send the updated asset back to the frontend
     res.status(200).json(updatedAsset);
   } catch (error) {
     console.error("Error updating asset:", error);
@@ -75,21 +75,21 @@ app.put("/api/portfolio/:id", async (req, res) => {
   }
 });
 
-// [RU] Удаление актива из базы данных (DELETE)
+// Deleting the asset from the DB (DELETE)
 app.delete("/api/portfolio/:id", async (req, res) => {
   try {
-    // 1. Достаем ID из URL (например, /api/portfolio/5 -> id будет 5)
+    // Get the ID from the URL (for example, /api/portfolio/5 -> id will be 5)
     const { id } = req.params;
 
-    // 2. Командуем Призме удалить запись.
-    // ВАЖНО: оборачиваем id в Number(), так как в URL это строка, а в базе у нас Int
+    // Command Prisma to delete the entry.
+    // IMPORTANT: Wrap the id in Number(), since in the URL it is a string, and in the database we have Int
     await prisma.portfolioItem.delete({
       where: {
         id: Number(id),
       },
     });
 
-    // 3. Отправляем успешный статус (200 OK)
+    // Send the successful status (200 OK)
     res.status(200).json({ message: "Asset deleted successfully" });
   } catch (error) {
     console.error("Error deleting asset:", error);
@@ -97,7 +97,33 @@ app.delete("/api/portfolio/:id", async (req, res) => {
   }
 });
 
-// [RU] Запускаем сервер на порту 3001
+app.get("/api/liquidations", async (req, res) => {
+  try {
+    // Working public endpoint of the Order Book (1000 orders)
+    const binanceRes = await fetch(
+      "https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000",
+      {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+      },
+    );
+
+    if (!binanceRes.ok) {
+      const errText = await binanceRes.text();
+      throw new Error(`Binance API Error ${binanceRes.status}: ${errText}`);
+    }
+
+    const data = await binanceRes.json();
+    res.json(data);
+  } catch (error: any) {
+    console.error("🔥 Ошибка бэкенда:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Run the server on 3001 port
 app.listen(3001, () => {
   console.log("🚀 API Server is running on http://localhost:3001");
 });
