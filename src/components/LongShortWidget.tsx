@@ -5,6 +5,8 @@ export const LongShortWidget = ({
   className,
 }: {
   theme: string;
+  data: any; //
+  isLoading: boolean;
   className?: string;
 }) => {
   const [data, setData] = useState<{
@@ -57,20 +59,23 @@ export const LongShortWidget = ({
           Global Accounts L/S
         </p>
         <div
-          className={`flex items-center justify-center px-3 py-2 text-[13px] font-black tracking-[0.15em] transition-all border uppercase shadow-sm cursor-default rounded-xl backdrop-blur-2xl 
-            ${theme === "dark" ? "border-white/10 bg-zinc-900/10 text-white/90" : "border-zinc-200 bg-white/80 text-zinc-800"}`}
+          className={`flex items-center gap-1 justify-center px-3 py-2 text-[13px] font-black tracking-[0.15em] transition-all border uppercase shadow-sm cursor-default rounded-xl backdrop-blur-2xl 
+              ${theme === "dark" ? "border-white/10 bg-zinc-900/10 text-white/90" : "border-zinc-200 bg-white/80 text-zinc-800"}`}
         >
-          <span className="text-zinc-600 dark:text-zinc-300 mr-2">
+          <span
+            className={`mr-2 ${theme === "dark" ? "text-white" : "text-black"}`}
+          >
             L/S RATIO:
           </span>
           <span
-            className={
-              Number(data.ratio) > 1
-                ? "text-emerald-500"
-                : Number(data.ratio) < 1
-                  ? "text-red-500"
-                  : "text-zinc-500"
-            }
+            className={`px-2 py-0.5 rounded-md
+              ${
+                Number(data.ratio) > 1
+                  ? "text-emerald-500 bg-emerald-500/10"
+                  : Number(data.ratio) < 1
+                    ? "text-red-500 bg-red-500/10"
+                    : "text-zinc-500"
+              }`}
           >
             {data.ratio}
           </span>

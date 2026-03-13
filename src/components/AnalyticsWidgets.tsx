@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { WidgetLoader, WidgetError } from "./ui/WidgetStates";
 
-// ===============================================
-// 1. SMART CACHE & CUSTOM HOOK (SWR Pattern)
-// ===============================================
+// ===============================
+// 1. SMART CACHE & CUSTOM HOOK
+// ===============================
 interface CacheItem {
   data: any;
   timestamp: number;
@@ -11,43 +12,38 @@ interface CacheItem {
 const apiCache: Record<string, CacheItem> = {};
 const CACHE_TTL = 60 * 1000; // 60 sec
 
-function useCachedApi(
-  key: string,
-  fetcher: (signal: AbortSignal) => Promise<any>,
-) {
-  // Initialize the state from the cache (if it's there)
+export function useDashboardData() {
+  const key = "main_dashboard";
   const [data, setData] = useState<any>(apiCache[key]?.data || null);
-  // Call the loader ONLY if we don't have cache at all
   const [isLoading, setIsLoading] = useState(!apiCache[key]);
-  // State for the errors
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     const now = Date.now();
     const cached = apiCache[key];
 
-    // CACHE CHECK: If there is data and it's < 60 sec old, hang up and don't download anything
     if (cached && now - cached.timestamp < CACHE_TTL) {
       setIsLoading(false);
       return;
     }
 
     const controller = new AbortController();
-    if (!data) setIsLoading(true); // Show the loader ONLY if we don't have any old data
+    if (!data) setIsLoading(true);
     setIsError(false);
 
-    // FETCHER CALL: loading logic
-    fetcher(controller.signal)
+    fetch("http://localhost:3001/api/dashboard", { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error("Dashboard API failed");
+        return res.json();
+      })
       .then((result) => {
-        // Save the result and CURRENT TIME in the cache
         apiCache[key] = { data: result, timestamp: Date.now() };
         setData(result);
         setIsError(false);
       })
       .catch((err) => {
         if (err.name !== "AbortError") {
-          console.error(`[API Error - ${key}]: `, err);
-          // Show the error ONLY if we don't have any old data
+          console.error(`[API Error - Dashboard]: `, err);
           if (!apiCache[key]) setIsError(true);
         }
       })
@@ -56,15 +52,14 @@ function useCachedApi(
       });
 
     return () => controller.abort();
-  }, [key]); // Hook will only restart if the key changes
+  }, []);
 
-  // The hook returns 3 things that widget needs to render
   return { data, isLoading, isError };
 }
 
-// ===============================================
+// ==============================
 // 2. UNIVERSAL WIDGET FRAMEWORK
-// ===============================================
+// ==============================
 const WidgetCard = ({
   theme,
   title,
@@ -79,6 +74,11 @@ const WidgetCard = ({
   className = "",
   valueSize = "text-5xl sm:text-5xl lg:text-6xl",
 }: any) => {
+  if (isLoading)
+    return <WidgetLoader theme={theme} text={`LOADING ${title}...`} />;
+  if (isError)
+    return <WidgetError theme={theme} text={`${title} UNAVAILABLE`} />;
+
   return (
     <div
       className={`relative p-6 rounded-3xl border thick-glass overflow-hidden flex flex-col h-40 transition-all animate-content-reveal ${
@@ -87,77 +87,52 @@ const WidgetCard = ({
           : "border-zinc-200 bg-white/50"
       } ${className}`}
     >
-      {isError ? (
-        <div className="flex-1 flex flex-col items-center justify-center z-10 opacity-80">
-          <span className="text-red-500 font-black tracking-widest uppercase text-sm mb-1 animate-pulse">
-            API Offline
+      <div
+        className={`absolute -right-20 -top-20 w-80 h-80 rounded-full blur-[64px] transition-colors duration-1000 pointer-events-none ${
+          theme === "dark" ? "opacity-20" : "opacity-30"
+        } ${bgClass}`}
+      ></div>
+
+      <div className="flex justify-between items-center z-10 w-full pr-2">
+        <p className="text-[13px] font-bold uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-300 z-10">
+          {title}
+        </p>
+        {action && action}
+      </div>
+
+      <div className="flex items-stretch gap-3 z-10 mt-auto">
+        <span
+          className={`${valueSize} font-black tracking-tighter leading-none ${colorClass}`}
+        >
+          {value}
+        </span>
+
+        <div className="flex flex-col justify-between pt-1 sm:pt-1.5 pb-1 sm:pb-1.5 ">
+          <span
+            className={`text-2xl font-black opacity-40 leading-none ${colorClass}`}
+          >
+            {denominator}
           </span>
-          <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-500">
-            Connection Failed
+          <span
+            className={`text-[13px] sm:text-sm font-black tracking-widest uppercase leading-none ${colorClass}`}
+          >
+            {status}
           </span>
         </div>
-      ) : isLoading ? (
-        <div className="flex-1 flex items-center justify-center z-10">
-          <span className="animate-pulse text-[13px] font-bold uppercase tracking-[0.2em] text-zinc-500">
-            Calibrating...
-          </span>
-        </div>
-      ) : (
-        <>
-          <div
-            className={`absolute -right-20 -top-20 w-80 h-80 rounded-full blur-[64px] transition-colors duration-1000 pointer-events-none ${
-              theme === "dark" ? "opacity-20" : "opacity-30"
-            } ${bgClass}`}
-          ></div>
-
-          <div className="flex justify-between items-center z-10 w-full pr-2">
-            <p className="text-[13px] font-bold uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-300 z-10">
-              {title}
-            </p>
-            {action && action}
-          </div>
-
-          <div className="flex items-stretch gap-3 z-10 mt-auto">
-            <span
-              className={`${valueSize} font-black tracking-tighter leading-none ${colorClass}`}
-            >
-              {value}
-            </span>
-
-            <div className="flex flex-col justify-between pt-1 sm:pt-1.5 pb-1 sm:pb-1.5 ">
-              <span
-                className={`text-2xl font-black opacity-40 leading-none ${colorClass}`}
-              >
-                {denominator}
-              </span>
-              <span
-                className={`text-[13px] sm:text-sm font-black tracking-widest uppercase leading-none ${colorClass}`}
-              >
-                {status}
-              </span>
-            </div>
-          </div>
-        </>
-      )}
+      </div>
     </div>
   );
 };
 
-// ===============================================
-// 2. WIDGETS
-// ===============================================
+// ===========
+// 3. WIDGETS
+// ===========
 
-export const FearAndGreedWidget = ({ theme }: { theme: string }) => {
-  const { data, isLoading, isError } = useCachedApi("fng", async (signal) => {
-    const res = await fetch("https://api.alternative.me/fng/", { signal });
-    if (!res.ok) throw new Error("API failed");
-    const json = await res.json();
-    return json.data[0];
-  });
-
+export const FearAndGreedWidget = ({ theme, data, isLoading }: any) => {
   const value = data ? parseInt(data.value) : 0;
   let colorClass = "text-zinc-500",
     bgClass = "bg-zinc-500";
+
   if (data) {
     if (value <= 24) {
       colorClass = "text-red-500";
@@ -178,7 +153,7 @@ export const FearAndGreedWidget = ({ theme }: { theme: string }) => {
     <WidgetCard
       theme={theme}
       isLoading={isLoading}
-      isError={isError}
+      isError={!data && !isLoading}
       title="Fear & Greed Index"
       value={data?.value}
       denominator="/ 100"
@@ -190,31 +165,16 @@ export const FearAndGreedWidget = ({ theme }: { theme: string }) => {
   );
 };
 
-export const MarketCapWidget = ({ theme }: { theme: string }) => {
-  const { data, isLoading, isError } = useCachedApi(
-    "global",
-    async (signal) => {
-      const res = await fetch("https://api.coingecko.com/api/v3/global", {
-        signal,
-      });
-      if (!res.ok) throw new Error("API failed");
-      const json = await res.json();
-      return json.data;
-    },
-  );
-
-  const mcap = data ? (data.total_market_cap.usd / 1e12).toFixed(2) : "0";
-  const vol = data ? (data.total_volume.usd / 1e9).toFixed(0) : "0";
-
+export const MarketCapWidget = ({ theme, data, isLoading }: any) => {
   return (
     <WidgetCard
       theme={theme}
       isLoading={isLoading}
-      isError={isError}
+      isError={!data && !isLoading}
       title="Total Market Cap"
-      value={`$${mcap}`}
+      value={`$${data?.total || "0"}`}
       denominator="Trillion"
-      status={`Vol 24H: $${vol}B`}
+      status={`Vol 24H: $${data?.volume24h || "0"}B`}
       colorClass="text-blue-500"
       bgClass="bg-blue-500"
       className="md:col-span-7 lg:col-span-7"
@@ -222,32 +182,16 @@ export const MarketCapWidget = ({ theme }: { theme: string }) => {
   );
 };
 
-export const DominanceWidget = ({ theme }: { theme: string }) => {
-  const { data, isLoading, isError } = useCachedApi(
-    "global_dom",
-    async (signal) => {
-      const res = await fetch("https://api.coingecko.com/api/v3/global", {
-        signal,
-      });
-      if (!res.ok) throw new Error("API failed");
-      const json = await res.json();
-      return json.data.market_cap_percentage;
-    },
-  );
-
-  const btc = data ? data.btc.toFixed(1) : "0";
-  const eth = data ? data.eth.toFixed(1) : "0";
-  const others = data ? (100 - data.btc - data.eth).toFixed(1) : "0";
-
+export const DominanceWidget = ({ theme, data, isLoading }: any) => {
   return (
     <WidgetCard
       theme={theme}
       isLoading={isLoading}
-      isError={isError}
+      isError={!data && !isLoading}
       title="Market Dominance"
-      value={btc}
+      value={data?.btc || "0"}
       denominator="% BTC"
-      status={`ETH: ${eth}% | OTH: ${others}%`}
+      status={`ETH: ${data?.eth || "0"}% | OTH: ${data?.others || "0"}%`}
       colorClass="text-orange-500"
       bgClass="bg-orange-500"
       className="md:col-span-8 lg:col-span-8"
@@ -257,67 +201,22 @@ export const DominanceWidget = ({ theme }: { theme: string }) => {
 
 export const OpenInterestWidget = ({
   theme,
+  data,
+  isLoading,
   className,
-}: {
-  theme: string;
-  className?: string;
-}) => {
-  // 1. State for switching (starting from index 0)
+}: any) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  const { data, isLoading, isError } = useCachedApi(
-    "hyperliquid_oi",
-    async (signal) => {
-      const res = await fetch("https://api.hyperliquid.xyz/info", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "metaAndAssetCtxs" }),
-        signal,
-      });
-      if (!res.ok) throw new Error("API failed");
-      const j = await res.json();
-
-      // 2. The list of coins that we want to scroll
-      const targetCoins = ["BTC", "ETH", "SOL", "HYPE", "DOGE", "SUI"];
-      const results: any[] = [];
-
-      targetCoins.forEach((coinName) => {
-        const idx = j[0].universe.findIndex((u: any) => u.name === coinName);
-        if (idx !== -1) {
-          results.push({
-            symbol: coinName,
-            oi:
-              parseFloat(j[1][idx].openInterest) * parseFloat(j[1][idx].markPx),
-          });
-        }
-      });
-
-      // Return the ARRAY of objects: [{symbol: "BTC", oi: 1.8}, {symbol: "ETH", oi: 0.5}, ...]
-      return results;
-    },
-  );
-
-  // 3. Choose current coin from the array
   const currentCoin = data ? data[currentIndex] : null;
-  const oiFormatted = currentCoin ? (currentCoin.oi / 1e9).toFixed(2) : "0";
 
-  // 4. Coin switching function
   const handleNext = () => {
-    if (data) {
-      // Modular arithmetic: if we reach the end of the array, we return to 0
-      setCurrentIndex((prev) => (prev + 1) % data.length);
-    }
+    if (data) setCurrentIndex((prev) => (prev + 1) % data.length);
   };
 
   const SwitchButton =
     data && data.length > 1 ? (
       <button
         onClick={handleNext}
-        className={`px-2.5 py-1 rounded-lg text-[12px] thick-glass font-black cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 ${
-          theme === "dark"
-            ? "bg-white/10 hover:bg-white/20 text-zinc-200"
-            : "bg-black/5 hover:bg-black/10 text-zinc-600"
-        }`}
+        className={`px-2.5 py-1 rounded-lg text-[12px] thick-glass font-black cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 ${theme === "dark" ? "bg-white/10 hover:bg-white/20 text-zinc-200" : "bg-black/5 hover:bg-black/10 text-zinc-600"}`}
       >
         NEXT <span>➔</span>
       </button>
@@ -327,10 +226,10 @@ export const OpenInterestWidget = ({
     <WidgetCard
       theme={theme}
       isLoading={isLoading}
-      isError={isError}
+      isError={!data && !isLoading}
       title={`${currentCoin?.symbol || "BTC"} Open Interest`}
       action={SwitchButton}
-      value={`$${oiFormatted}`}
+      value={`$${currentCoin?.oi || "0"}`}
       denominator="Billion"
       status="HYPERLIQUID PERPS"
       colorClass="text-purple-500"
@@ -342,56 +241,19 @@ export const OpenInterestWidget = ({
 
 export const BtcFundingWidget = ({
   theme,
+  data,
+  isLoading,
   className,
-}: {
-  theme: string;
-  className?: string;
-}) => {
-  // 1. State for switching
+}: any) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  const { data, isLoading, isError } = useCachedApi(
-    "hyperliquid_funding",
-    async (signal) => {
-      const res = await fetch("https://api.hyperliquid.xyz/info", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "metaAndAssetCtxs" }),
-        signal,
-      });
-      if (!res.ok) throw new Error("API failed");
-      const j = await res.json();
-
-      // 2. Coins search
-      const targetCoins = ["BTC", "ETH", "SOL", "HYPE", "DOGE", "SUI"];
-      const results: any[] = [];
-
-      targetCoins.forEach((coinName) => {
-        const idx = j[0].universe.findIndex((u: any) => u.name === coinName);
-        if (idx !== -1) {
-          results.push({
-            symbol: coinName,
-            rate: parseFloat(j[1][idx].funding) * 100,
-            markPx: parseFloat(j[1][idx].markPx).toLocaleString("en-US", {
-              maximumFractionDigits: 0,
-            }),
-          });
-        }
-      });
-      return results;
-    },
-  );
-
-  // 3. Take the current coin
   const currentCoin = data ? data[currentIndex] : null;
-  const rate = currentCoin ? currentCoin.rate : 0;
+  const rate = currentCoin ? parseFloat(currentCoin.rate) : 0;
 
   const isLongHeavy = rate > 0;
   const colorClass = isLongHeavy ? "text-emerald-500" : "text-red-500";
   const bgClass = isLongHeavy ? "bg-emerald-500" : "bg-red-500";
   const displayRate = currentCoin ? Math.abs(rate).toFixed(4) : "0.0000";
 
-  // 4. Button logic
   const handleNext = () => {
     if (data) setCurrentIndex((prev) => (prev + 1) % data.length);
   };
@@ -400,11 +262,7 @@ export const BtcFundingWidget = ({
     data && data.length > 1 ? (
       <button
         onClick={handleNext}
-        className={`px-2.5 py-1 rounded-lg text-[12px] thick-glass font-black cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 ${
-          theme === "dark"
-            ? "bg-white/10 hover:bg-white/20 text-zinc-200"
-            : "bg-black/5 hover:bg-black/10 text-zinc-600"
-        }`}
+        className={`px-2.5 py-1 rounded-lg text-[12px] thick-glass font-black cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 ${theme === "dark" ? "bg-white/10 hover:bg-white/20 text-zinc-200" : "bg-black/5 hover:bg-black/10 text-zinc-600"}`}
       >
         NEXT <span>➔</span>
       </button>
@@ -414,7 +272,7 @@ export const BtcFundingWidget = ({
     <WidgetCard
       theme={theme}
       isLoading={isLoading}
-      isError={isError}
+      isError={!data && !isLoading}
       title={`${currentCoin?.symbol || "BTC"} Funding Rate`}
       action={SwitchButton}
       value={`${isLongHeavy ? "+" : "-"}${displayRate}`}
@@ -427,15 +285,7 @@ export const BtcFundingWidget = ({
   );
 };
 
-export const BtcFeesWidget = ({ theme }: { theme: string }) => {
-  const { data, isLoading, isError } = useCachedApi("fees", async (signal) => {
-    const res = await fetch("https://mempool.space/api/v1/fees/recommended", {
-      signal,
-    });
-    if (!res.ok) throw new Error("API failed");
-    return res.json();
-  });
-
+export const BtcFeesWidget = ({ theme, data, isLoading }: any) => {
   const fastest = data ? data.fastestFee : 0;
   const economy = data ? data.economyFee : 0;
   const colorClass =
@@ -455,7 +305,7 @@ export const BtcFeesWidget = ({ theme }: { theme: string }) => {
     <WidgetCard
       theme={theme}
       isLoading={isLoading}
-      isError={isError}
+      isError={!data && !isLoading}
       title="BTC Network Fees"
       value={fastest}
       denominator="sat/vB"
@@ -467,21 +317,8 @@ export const BtcFeesWidget = ({ theme }: { theme: string }) => {
   );
 };
 
-export const TrendingWidget = ({ theme }: { theme: string }) => {
-  const { data, isLoading, isError } = useCachedApi(
-    "trending",
-    async (signal) => {
-      const res = await fetch(
-        "https://api.coingecko.com/api/v3/search/trending",
-        { signal },
-      );
-      if (!res.ok) throw new Error("API failed");
-      const json = await res.json();
-      return json.coins[0].item;
-    },
-  );
-
-  const isPositive = data && data.data.price_change_percentage_24h.usd >= 0;
+export const TrendingWidget = ({ theme, data, isLoading }: any) => {
+  const isPositive = data && data.isPositive;
   const colorClass = isPositive ? "text-emerald-500" : "text-red-500";
   const bgClass = isPositive ? "bg-emerald-500" : "bg-red-500";
 
@@ -489,11 +326,11 @@ export const TrendingWidget = ({ theme }: { theme: string }) => {
     <WidgetCard
       theme={theme}
       isLoading={isLoading}
-      isError={isError}
+      isError={!data && !isLoading}
       title="#1 Trending Coin"
-      value={data?.symbol?.toUpperCase() || "..."}
+      value={data?.symbol || "..."}
       denominator=""
-      status={`24H: ${isPositive ? "+" : ""}${data?.data?.price_change_percentage_24h?.usd?.toFixed(2) || "0"}%`}
+      status={`24H: ${isPositive ? "+" : ""}${data?.change24h || "0"}%`}
       colorClass={colorClass}
       bgClass={bgClass}
       className="md:col-span-10 lg:col-span-10"
@@ -501,28 +338,16 @@ export const TrendingWidget = ({ theme }: { theme: string }) => {
   );
 };
 
-export const DefiWidget = ({ theme }: { theme: string }) => {
-  const { data, isLoading, isError } = useCachedApi("defi", async (signal) => {
-    const res = await fetch(
-      "https://api.coingecko.com/api/v3/global/decentralized_finance_defi",
-      { signal },
-    );
-    if (!res.ok) throw new Error("API failed");
-    const json = await res.json();
-    return json.data;
-  });
-
-  const mcap = data ? (parseFloat(data.defi_market_cap) / 1e9).toFixed(1) : "0";
-
+export const DefiWidget = ({ theme, data, isLoading }: any) => {
   return (
     <WidgetCard
       theme={theme}
       isLoading={isLoading}
-      isError={isError}
+      isError={!data && !isLoading}
       title="DeFi Market Cap"
-      value={`$${mcap}`}
+      value={`$${data?.mcap || "0"}`}
       denominator="Billion"
-      status={`TOP: ${data?.top_coin_name?.toUpperCase() || "..."}`}
+      status={`TOP: ${data?.topCoin || "..."}`}
       colorClass="text-cyan-500"
       bgClass="bg-cyan-500"
       className="md:col-span-10 lg:col-span-10"

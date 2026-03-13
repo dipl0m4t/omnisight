@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   AreaChart,
   Area,
@@ -7,42 +7,27 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { WidgetLoader, WidgetError } from "./ui/WidgetStates";
 
 export const StablecoinWidget = ({
   theme,
+  data,
+  isLoading,
   className,
 }: {
   theme: string;
+  data: any;
+  isLoading: boolean;
   className?: string;
 }) => {
-  const [data, setData] = useState<{
-    currentCap: string;
-    changePercent: string;
-    chartData: any[];
-  } | null>(null);
-
   const [isExpanded, setIsExpanded] = useState(false);
 
-  useEffect(() => {
-    const fetchStablecoins = async () => {
-      try {
-        const res = await fetch("http://localhost:3001/api/stablecoins");
-        const json = await res.json();
+  if (isLoading)
+    return <WidgetLoader theme={theme} text="LOADING LIQUIDITY..." />;
+  if (!data)
+    return <WidgetError theme={theme} text="STABLECOINS API UNAVAILABLE" />;
 
-        if (json.error) throw new Error(json.error);
-
-        setData(json);
-      } catch (error) {
-        console.error("Failed to fetch stablecoins", error);
-      }
-    };
-
-    fetchStablecoins();
-    const interval = setInterval(fetchStablecoins, 1800000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const isPositive = data ? Number(data.changePercent) >= 0 : true;
+  const isPositive = Number(data.changePercent) >= 0;
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -67,61 +52,54 @@ export const StablecoinWidget = ({
 
   return (
     <div
-      className={`relative p-6 rounded-[24px] border thick-glass flex flex-col transition-colors duration-300 ${className} ${theme === "dark" ? "border-white/10 bg-white/5" : "border-zinc-200 bg-white/50"}`}
+      className={`relative p-4 sm:p-6 rounded-[24px] border thick-glass flex flex-col transition-all duration-300 ${className} ${theme === "dark" ? "border-white/10 bg-white/5" : "border-zinc-200 bg-white/50"}`}
     >
       {/* Header */}
-      <div className="flex justify-between items-start z-10">
-        <div>
-          <p className="text-[13px] font-bold uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-300">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between z-10">
+        {/* Left: Titles */}
+        <div className="flex flex-col">
+          <p className="text-[11px] sm:text-[13px] font-bold uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-300">
             Stablecoin Market Cap
           </p>
-          <p className="text-[12px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mt-1">
+          <p className="text-[10px] sm:text-[12px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mt-0.5">
             30-Day Liquidity Trend
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          {data && (
-            <div
-              className={`flex items-center gap-3 justify-center px-3 py-2 text-[13px] font-black tracking-[0.15em] transition-all border uppercase shadow-sm cursor-default rounded-xl backdrop-blur-2xl 
-              ${theme === "dark" ? "border-white/10 bg-zinc-900/10 text-white/90" : "border-zinc-200 bg-white/80 text-zinc-800"}`}
-            >
-              <span
-                className={`font-black ${theme === "dark" ? "text-white" : "text-black"}`}
-              >
+        {/* Right: Stats & Toggle */}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {/* Badge: Мы добавили flex-1, чтобы на мобилке она занимала всё место слева от кнопки */}
+          <div
+            className={`flex-1 sm:flex-none flex items-center justify-between sm:justify-center gap-2 sm:gap-3 px-3 py-2 text-[10px] sm:text-[12px] font-black tracking-tighter sm:tracking-[0.1em] transition-all border uppercase rounded-xl backdrop-blur-2xl whitespace-nowrap
+            ${theme === "dark" ? "border-white/10 bg-zinc-900/40 text-white/90" : "border-zinc-200 bg-white/80 text-zinc-800"}`}
+          >
+            <div className="flex items-center gap-1.5">
+              <span className={theme === "dark" ? "text-white" : "text-black"}>
                 ${data.currentCap}B
               </span>
-              <span
-                className={`font-black ${theme === "dark" ? "text-white" : "text-black"}`}
-              >
-                |
-              </span>
-              <span
-                className={`font-black ${theme === "dark" ? "text-white" : "text-black"}`}
-              >
-                30D:
-              </span>
-              <span
-                className={`font-black px-2 py-0.5 rounded-md ${isPositive ? "text-emerald-500 bg-emerald-500/10" : "text-red-500 bg-red-500/10"}`}
-              >
-                {isPositive ? "↑" : "↓"} {data.changePercent}%
-              </span>
+              <span className="opacity-20">|</span>
+              <span className="opacity-60">30D:</span>
             </div>
-          )}
+            <span
+              className={`px-1.5 py-0.5 rounded-md ${isPositive ? "text-emerald-500 bg-emerald-500/10" : "text-red-500 bg-red-500/10"}`}
+            >
+              {isPositive ? "↑" : "↓"} {data.changePercent}%
+            </span>
+          </div>
 
+          {/* Button */}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className={`flex p-3 rounded-2xl border thick-glass active:scale-90 hover:brightness-110 rounded-full cursor-pointer ${theme === "dark" ? "bg-black/20 border-white/10" : "bg-white/40 border-slate-200"}`}
-            title={isExpanded ? "Hide Chart" : "Show Chart"}
+            className={`flex-shrink-0 p-2.5 rounded-full border thick-glass active:scale-90 transition-transform cursor-pointer ${theme === "dark" ? "bg-black/20 border-white/10" : "bg-white/40 border-zinc-200"}`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2.5"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
               className={`transition-transform duration-300 ${isExpanded ? "" : "rotate-180"}`}
@@ -132,78 +110,58 @@ export const StablecoinWidget = ({
         </div>
       </div>
 
+      {/* Chart Container: Исправляем ошибку width(-1) */}
       <div
-        className={`grid transition-all duration-500 ease-in-out ${
-          isExpanded
-            ? "grid-rows-[1fr] opacity-100 mt-6"
-            : "grid-rows-[0fr] opacity-0 mt-0"
+        className={`transition-all duration-500 ease-in-out overflow-hidden ${
+          isExpanded ? "max-h-[400px] opacity-100 mt-6" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="overflow-hidden">
-          <div className="h-[250px] w-full relative z-10">
-            {!data ? (
-              <div className="h-full w-full flex items-center justify-center">
-                <span className="animate-pulse text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-500">
-                  Loading Liquidity...
-                </span>
-              </div>
-            ) : (
-              /* AREA CHART */
-              <ResponsiveContainer width="100%" minHeight={250}>
-                {/* Добавили margin top, чтобы пики не обрезались сверху */}
-                <AreaChart
-                  data={data.chartData}
-                  margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
-                >
-                  {/* Магия градиента */}
-                  <defs>
-                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-
-                  <XAxis dataKey="date" hide={true} />
-
-                  {/* Магия отступа снизу: пол будет на 1% ниже минимальной точки */}
-                  <YAxis
-                    domain={[(dataMin: number) => dataMin * 0.99, "dataMax"]}
-                    hide={true}
-                  />
-
-                  <Tooltip
-                    content={<CustomTooltip />}
-                    // В AreaChart курсор — это линия (stroke), а не прямоугольник (fill). Сделаем её пунктирной!
-                    cursor={{
-                      stroke:
-                        theme === "dark"
-                          ? "rgba(255,255,255,0.2)"
-                          : "rgba(0,0,0,0.2)",
-                      strokeWidth: 1,
-                      strokeDasharray: "4 4",
-                    }}
-                  />
-
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#6366f1"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#colorValue)" // Применяем наш градиент
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </div>
+        {/* Фиксированная высота для контейнера, чтобы Recharts не тупил */}
+        <div className="h-[250px] w-full relative z-10">
+          {isExpanded && (
+            <ResponsiveContainer width="99%" height="100%">
+              <AreaChart
+                data={data.chartData}
+                margin={{ top: 10, right: 5, left: 5, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" hide={true} />
+                <YAxis
+                  domain={[(dataMin: number) => dataMin * 0.999, "dataMax"]}
+                  hide={true}
+                />
+                <Tooltip
+                  content={<CustomTooltip />}
+                  cursor={{
+                    stroke:
+                      theme === "dark"
+                        ? "rgba(255,255,255,0.1)"
+                        : "rgba(0,0,0,0.1)",
+                    strokeWidth: 1,
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#6366f1"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#colorValue)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
 
-      {/* BG Light */}
+      {/* Background Light */}
       <div
-        className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-full rounded-full blur-[100px] pointer-events-none transition-all duration-1000 ${
-          isExpanded ? "opacity-100" : "opacity-0"
-        } ${theme === "dark" ? "bg-indigo-500/5" : "bg-indigo-500/10"}`}
+        className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-full rounded-full blur-[100px] pointer-events-none transition-opacity duration-1000 ${isExpanded ? "opacity-100" : "opacity-0"} ${theme === "dark" ? "bg-indigo-500/5" : "bg-indigo-500/10"}`}
       ></div>
     </div>
   );

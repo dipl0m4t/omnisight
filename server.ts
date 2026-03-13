@@ -123,82 +123,172 @@ app.get("/api/liquidations", async (req, res) => {
   }
 });
 
-app.get("/api/long-short", async (req, res) => {
+app.get("/api/dashboard", async (req, res) => {
   try {
-    const response = await fetch(
-      "https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=5m&limit=1",
-      {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
-      },
-    );
+    const [
+      fngResult, // Alternative.me (Fear and Greed)
+      feesResult, // Mempool.space (Fees recommended)
+      lsResult, // Binance (globalLongShortAccountRatio)
+      stablesResult, // DefiLlama (Stablecoins Market Cap)
+      cgGlobalResult, // CoinGecko Global (Market Cap + Dominance)
+      cgTrendingResult, // CoinGecko Trending
+      cgDefiResult, // CoinGecko DeFi
+      hyperResult, // Hyperliquid (Open Interest + Funding)
+    ] = await Promise.allSettled([
+      fetch("https://api.alternative.me/fng/"),
+      fetch("https://mempool.space/api/v1/fees/recommended"),
+      fetch(
+        "https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=5m&limit=1",
+      ),
+      fetch("https://stablecoins.llama.fi/stablecoincharts/all"),
+      fetch("https://api.coingecko.com/api/v3/global"),
+      fetch("https://api.coingecko.com/api/v3/search/trending"),
+      fetch(
+        "https://api.coingecko.com/api/v3/global/decentralized_finance_defi",
+      ),
+      fetch("https://api.hyperliquid.xyz/info", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "metaAndAssetCtxs" }),
+      }),
+    ]);
 
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Binance API Error ${response.status}: ${errText}`);
-    }
+    const dashboardData: any = {};
 
-    const data = await response.json();
-    const raw = data[0];
+    // 1. FNG
+    if (fngResult.status === "fulfilled" && fngResult.value.ok) {
+      const fngJson = await fngResult.value.json();
+      dashboardData.fearAndGreed = fngJson.data[0];
+    } else dashboardData.fearAndGreed = null;
 
-    const longsPercent = parseFloat(raw.longAccount) * 100;
-    const cleanData = {
-      longs: Number(longsPercent.toFixed(1)),
-      shorts: Number((100 - longsPercent).toFixed(1)),
-      ratio: parseFloat(raw.longShortRatio).toFixed(2),
-    };
+    // 2. FEES
+    if (feesResult.status === "fulfilled" && feesResult.value.ok) {
+      const feesJson = await feesResult.value.json();
+      dashboardData.fees = feesJson;
+    } else dashboardData.fees = null;
 
-    res.json(cleanData);
-  } catch (error: any) {
-    console.error("Error in the Long/Short API: ", error);
-    res.status(500).json({ error: "Failed to fetch long/short data" });
-  }
-});
+    // 3. LONG/SHORT
+    if (lsResult.status === "fulfilled" && lsResult.value.ok) {
+      const lsJson = await lsResult.value.json();
+      const raw = lsJson[0];
 
-app.get("/api/stablecoins", async (req, res) => {
-  try {
-    const response = await fetch(
-      "https://stablecoins.llama.fi/stablecoincharts/all",
-      {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`DefiLlama API Error ${response.status}: ${errText}`);
-    }
-
-    const data = await response.json();
-    const last30Days = data.slice(-30);
-    const chartData = last30Days.map((item: any) => {
-      const dateObj = new Date(item.date * 1000);
-
-      return {
-        date: dateObj.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        }),
-        value: item.totalCirculating.peggedUSD / 1_000_000_000,
+      const longsPercent = parseFloat(raw.longAccount) * 100;
+      const cleanData = {
+        longs: Number(longsPercent.toFixed(1)),
+        shorts: Number((100 - longsPercent).toFixed(1)),
+        ratio: parseFloat(raw.longShortRatio).toFixed(2),
       };
-    });
-    const oldCap = chartData[0].value;
-    const currentCap = chartData[chartData.length - 1].value;
-    const changePercent = ((currentCap - oldCap) / oldCap) * 100;
 
-    res.json({
-      currentCap: currentCap.toFixed(2),
-      changePercent: changePercent.toFixed(2),
-      chartData: chartData,
-    });
-  } catch (error: any) {
-    console.error("Error in the Stablecoins API: ", error);
-    res.status(500).json({ error: "Failed to fetch stablecoins data" });
+      dashboardData.longShort = cleanData;
+    } else {
+      dashboardData.longShort = null;
+    }
+
+    // 4. STABLECOINS
+    if (stablesResult.status === "fulfilled" && stablesResult.value.ok) {
+      const stablesJson = await stablesResult.value.json();
+
+      const last30Days = stablesJson.slice(-30);
+      const chartData = last30Days.map((item: any) => {
+        const dateObj = new Date(item.date * 1000);
+
+        return {
+          date: dateObj.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+          value: item.totalCirculating.peggedUSD / 1_000_000_000,
+        };
+      });
+      const oldCap = chartData[0].value;
+      const currentCap = chartData[chartData.length - 1].value;
+      const changePercent = ((currentCap - oldCap) / oldCap) * 100;
+
+      dashboardData.stablecoins = {
+        currentCap: currentCap.toFixed(2),
+        changePercent: changePercent.toFixed(2),
+        chartData: chartData,
+      };
+    } else {
+      dashboardData.stablecoins = null;
+    }
+
+    // 5. COINGECKO: GLOBAL (Market Cap + Dominance)
+    if (cgGlobalResult.status === "fulfilled" && cgGlobalResult.value.ok) {
+      const cgJson = await cgGlobalResult.value.json();
+      const data = cgJson.data;
+
+      dashboardData.marketCap = {
+        total: (data.total_market_cap.usd / 1e12).toFixed(2),
+        volume24h: (data.total_volume.usd / 1e9).toFixed(0),
+      };
+
+      dashboardData.dominance = {
+        btc: data.market_cap_percentage.btc.toFixed(1),
+        eth: data.market_cap_percentage.eth.toFixed(1),
+        others: (
+          100 -
+          data.market_cap_percentage.btc -
+          data.market_cap_percentage.eth
+        ).toFixed(1),
+      };
+    } else {
+      dashboardData.marketCap = null;
+      dashboardData.dominance = null;
+    }
+
+    // 6. COINGECKO: TRENDING
+    if (cgTrendingResult.status === "fulfilled" && cgTrendingResult.value.ok) {
+      const trendJson = await cgTrendingResult.value.json();
+      const topCoin = trendJson.coins[0].item;
+      dashboardData.trending = {
+        symbol: topCoin.symbol.toUpperCase(),
+        change24h: topCoin.data.price_change_percentage_24h.usd.toFixed(2),
+        isPositive: topCoin.data.price_change_percentage_24h.usd >= 0,
+      };
+    } else dashboardData.trending = null;
+
+    // 7. COINGECKO: DEFI
+    if (cgDefiResult.status === "fulfilled" && cgDefiResult.value.ok) {
+      const defiJson = await cgDefiResult.value.json();
+      dashboardData.defi = {
+        mcap: (parseFloat(defiJson.data.defi_market_cap) / 1e9).toFixed(1),
+        topCoin: defiJson.data.top_coin_name.toUpperCase(),
+      };
+    } else dashboardData.defi = null;
+
+    // 8. HYPERLIQUID (Open Interest + Funding - 2 в 1!)
+    if (hyperResult.status === "fulfilled" && hyperResult.value.ok) {
+      const j = await hyperResult.value.json();
+      const targetCoins = ["BTC", "ETH", "SOL", "HYPE", "DOGE", "SUI"];
+      const hyperData: any[] = [];
+
+      targetCoins.forEach((coinName) => {
+        const idx = j[0].universe.findIndex((u: any) => u.name === coinName);
+        if (idx !== -1) {
+          hyperData.push({
+            symbol: coinName,
+            oi: (
+              (parseFloat(j[1][idx].openInterest) *
+                parseFloat(j[1][idx].markPx)) /
+              1e9
+            ).toFixed(2),
+            rate: (parseFloat(j[1][idx].funding) * 100).toFixed(4),
+            markPx: parseFloat(j[1][idx].markPx).toLocaleString("en-US", {
+              maximumFractionDigits: 0,
+            }),
+          });
+        }
+      });
+      dashboardData.hyperliquid = hyperData;
+    } else {
+      dashboardData.hyperliquid = null;
+    }
+
+    res.json(dashboardData);
+  } catch (error) {
+    console.error("Dashboard Aggregator Error:", error);
+    res.status(500).json({ error: "Failed to aggregate dashboard data" });
   }
 });
 

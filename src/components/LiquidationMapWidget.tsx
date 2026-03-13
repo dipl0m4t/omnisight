@@ -22,6 +22,8 @@ export const LiquidationMapWidget = ({
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
+    if (!isExpanded) return;
+
     const fetchLiquidity = async () => {
       try {
         const res = await fetch("http://localhost:3001/api/liquidations");
@@ -75,9 +77,9 @@ export const LiquidationMapWidget = ({
     };
 
     fetchLiquidity();
-    const interval = setInterval(fetchLiquidity, 60000); // Update once in a 30 sec
+    const interval = setInterval(fetchLiquidity, 30000); // Update once in a 30 sec
     return () => clearInterval(interval);
-  }, []);
+  }, [isExpanded]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -174,77 +176,87 @@ export const LiquidationMapWidget = ({
                 </span>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={data}
-                  margin={{ top: 10, right: 0, bottom: 0, left: 10 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke={
-                      theme === "dark"
-                        ? "rgba(255,255,255,0.05)"
-                        : "rgba(0,0,0,0.05)"
-                    }
-                  />
-
-                  <XAxis
-                    dataKey="price"
-                    tickFormatter={(val) => `$${val.toLocaleString()}`}
-                    stroke={
-                      theme === "dark"
-                        ? "rgba(255,255,255,0.2)"
-                        : "rgba(0,0,0,0.2)"
-                    }
-                    tick={{ fontSize: 10, fill: "#71717a", fontWeight: "bold" }}
-                    tickMargin={10}
-                    minTickGap={30}
-                  />
-
-                  <YAxis
-                    tickFormatter={(val) =>
-                      val >= 1000000
-                        ? `${(val / 1000000).toFixed(1)}M`
-                        : `${(val / 1000).toFixed(0)}k`
-                    }
-                    stroke={
-                      theme === "dark"
-                        ? "rgba(255,255,255,0.2)"
-                        : "rgba(0,0,0,0.2)"
-                    }
-                    tick={{ fontSize: 10, fill: "#71717a", fontWeight: "bold" }}
-                    tickMargin={10}
-                  />
-
-                  <Tooltip
-                    content={<CustomTooltip />}
-                    cursor={{
-                      fill:
+              isExpanded && (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart
+                    data={data}
+                    margin={{ top: 10, right: 0, bottom: 0, left: 10 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke={
                         theme === "dark"
                           ? "rgba(255,255,255,0.05)"
-                          : "rgba(0,0,0,0.05)",
-                    }}
-                  />
+                          : "rgba(0,0,0,0.05)"
+                      }
+                    />
 
-                  <Bar
-                    isAnimationActive={false}
-                    dataKey="bidsVol"
-                    stackId="a"
-                    fill="#10b981"
-                    radius={[0, 0, 0, 0]}
-                    maxBarSize={60}
-                  />
-                  <Bar
-                    isAnimationActive={false}
-                    dataKey="asksVol"
-                    stackId="a"
-                    fill="#ef4444"
-                    radius={[0, 0, 0, 0]}
-                    maxBarSize={60}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+                    <XAxis
+                      dataKey="price"
+                      tickFormatter={(val) => `$${val.toLocaleString()}`}
+                      stroke={
+                        theme === "dark"
+                          ? "rgba(255,255,255,0.2)"
+                          : "rgba(0,0,0,0.2)"
+                      }
+                      tick={{
+                        fontSize: 10,
+                        fill: "#71717a",
+                        fontWeight: "bold",
+                      }}
+                      tickMargin={10}
+                      minTickGap={30}
+                    />
+
+                    <YAxis
+                      tickFormatter={(val) =>
+                        val >= 1000000
+                          ? `${(val / 1000000).toFixed(1)}M`
+                          : `${(val / 1000).toFixed(0)}k`
+                      }
+                      stroke={
+                        theme === "dark"
+                          ? "rgba(255,255,255,0.2)"
+                          : "rgba(0,0,0,0.2)"
+                      }
+                      tick={{
+                        fontSize: 10,
+                        fill: "#71717a",
+                        fontWeight: "bold",
+                      }}
+                      tickMargin={10}
+                    />
+
+                    <Tooltip
+                      content={<CustomTooltip />}
+                      cursor={{
+                        fill:
+                          theme === "dark"
+                            ? "rgba(255,255,255,0.05)"
+                            : "rgba(0,0,0,0.05)",
+                      }}
+                    />
+
+                    <Bar
+                      isAnimationActive={false}
+                      dataKey="bidsVol"
+                      stackId="a"
+                      fill="#10b981"
+                      radius={[0, 0, 0, 0]}
+                      maxBarSize={60}
+                    />
+                    <Bar
+                      isAnimationActive={false}
+                      dataKey="asksVol"
+                      stackId="a"
+                      fill="#ef4444"
+                      radius={[0, 0, 0, 0]}
+                      maxBarSize={60}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )
             )}
           </div>
         </div>

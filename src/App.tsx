@@ -19,6 +19,7 @@ import {
   DeleteModal,
 } from "./components/Modals";
 import {
+  useDashboardData,
   FearAndGreedWidget,
   MarketCapWidget,
   DominanceWidget,
@@ -43,7 +44,10 @@ function App() {
   const [error, setError] = useState<string | null>(null);
 
   const { theme } = useTheme();
+  const { data: dashboardData, isLoading: isDashboardLoading } =
+    useDashboardData();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -196,9 +200,49 @@ function App() {
     return () => clearTimeout(delayDebounceFn);
   }, [modalSearchQuery]);
 
-  // ==========================================
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let upwardAccumulator = 0;
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          const delta = currentScrollY - lastScrollY;
+
+          setIsScrolled(currentScrollY > 100);
+          if (delta > 2) {
+            upwardAccumulator = 0;
+            if (currentScrollY > 400) setIsHidden(true);
+          } else if (delta < -2) {
+            upwardAccumulator += Math.abs(delta);
+
+            if (upwardAccumulator > window.innerHeight * 0.4) {
+              setIsHidden(false);
+              upwardAccumulator = 0;
+            }
+          }
+
+          if (currentScrollY < 100) {
+            setIsHidden(false);
+            upwardAccumulator = 0;
+          }
+
+          lastScrollY = currentScrollY;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // ===========================================
   // 3. DATA PROCESSING (FILTRATION AND SORTING)
-  // ==========================================
+  // ===========================================
   const filteredMarkets = markets.filter((coin) => {
     if (showFavoritesOnly && !favorites.includes(coin.id)) return false;
     if (searchQuery) {
@@ -429,9 +473,9 @@ function App() {
     }
   };
 
-  // ==========================================
+  // ======================
   // 5. INTERFACE RENDER
-  // ==========================================
+  // ======================
   return (
     <div
       className={`relative min-h-screen font-sans transition-colors duration-300 flex flex-col ${theme === "dark" ? "bg-black text-zinc-300" : "bg-white text-zinc-900"}`}
@@ -445,10 +489,11 @@ function App() {
         setActiveTab={setActiveTab}
         setCurrentPage={setCurrentPage}
         isScrolled={isScrolled}
+        isHidden={isHidden}
         theme={theme}
       />
 
-      <main className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-8 pt-[120px] pb-20">
+      <main className="relative z-10 mx-auto w-full md:w-[80%] px-4 sm:px-0 pt-[120px] pb-20">
         <ControlBar
           activeTab={activeTab}
           error={error}
@@ -462,7 +507,12 @@ function App() {
         />
 
         <div
-          className={`border thick-glass refractive-distortion overflow-hidden rounded-[24px] transition-all animate-content-reveal ${theme === "dark" ? "border-white/[0.05] bg-white/[0.01] shadow-none" : "border-zinc-200 bg-white/70 shadow-2xl shadow-zinc-200/50"}`}
+          className={`border thick-glass refractive-distortion overflow-hidden rounded-[24px] transition-all animate-content-reveal 
+            ${
+              theme === "dark"
+                ? "border-white/[0.05] bg-white/[0.01] shadow-none"
+                : "border-zinc-200 bg-white/70 shadow-2xl shadow-zinc-200/50"
+            }`}
         >
           {/* Favorite Toggle */}
           {activeTab === "markets" && (
@@ -509,23 +559,67 @@ function App() {
                 Market Analytics
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-20 lg:grid-cols-20 xl:grid-cols-20 gap-6">
+                <MarketCapWidget
+                  theme={theme}
+                  data={dashboardData?.marketCap}
+                  isLoading={isDashboardLoading}
+                />
+                <DominanceWidget
+                  theme={theme}
+                  data={dashboardData?.dominance}
+                  isLoading={isDashboardLoading}
+                />
+                <FearAndGreedWidget
+                  theme={theme}
+                  data={dashboardData?.fearAndGreed}
+                  isLoading={isDashboardLoading}
+                />
+
+                <LongShortWidget
+                  theme={theme}
+                  data={dashboardData?.longShort}
+                  isLoading={isDashboardLoading}
+                  className="md:col-span-20"
+                />
+
+                <TrendingWidget
+                  theme={theme}
+                  data={dashboardData?.trending}
+                  isLoading={isDashboardLoading}
+                />
+                <DefiWidget
+                  theme={theme}
+                  data={dashboardData?.defi}
+                  isLoading={isDashboardLoading}
+                />
+
+                <StablecoinWidget
+                  theme={theme}
+                  data={dashboardData?.stablecoins}
+                  isLoading={isDashboardLoading}
+                  className="md:col-span-20"
+                />
+
+                <OpenInterestWidget
+                  theme={theme}
+                  data={dashboardData?.hyperliquid}
+                  isLoading={isDashboardLoading}
+                />
+                <BtcFundingWidget
+                  theme={theme}
+                  data={dashboardData?.hyperliquid}
+                  isLoading={isDashboardLoading}
+                />
+                <BtcFeesWidget
+                  theme={theme}
+                  data={dashboardData?.fees}
+                  isLoading={isDashboardLoading}
+                />
+
                 <LiquidationMapWidget
                   theme={theme}
                   className="md:col-span-20"
                 />
-                <LongShortWidget theme={theme} className="md:col-span-20" />
-                <StablecoinWidget theme={theme} className="md:col-span-20" />
-
-                <FearAndGreedWidget theme={theme} />
-                <MarketCapWidget theme={theme} />
-                <DominanceWidget theme={theme} />
-
-                <OpenInterestWidget theme={theme} />
-                <BtcFundingWidget theme={theme} />
-                <BtcFeesWidget theme={theme} />
-
-                <TrendingWidget theme={theme} />
-                <DefiWidget theme={theme} />
               </div>
             </div>
           )}
@@ -565,7 +659,7 @@ function App() {
       <footer
         className={`relative z-10 border-t transition-colors duration-300 py-8 sm:py-12 mt-auto text-[10px] sm:text-[12px] font-mono font-bold tracking-widest sm:tracking-[0.4em] uppercase ${theme === "dark" ? "border-white/[0.05] bg-black/60 text-zinc-500" : "border-zinc-200 bg-white/80 text-zinc-600 backdrop-blur-md"}`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col sm:flex-row justify-between items-center gap-4 w-full cursor-default text-center">
+        <div className="mx-auto w-full md:w-[80%] px-4 sm:px-0 flex flex-col sm:flex-row justify-between items-center gap-4 cursor-default text-center">
           <span>© {new Date().getFullYear()} OMNISIGHT</span>
           <span className="flex items-center justify-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -574,7 +668,7 @@ function App() {
         </div>
       </footer>
 
-      {/* ================= MODAL FORMS (PORTALS) ================= */}
+      {/* ===== MODAL FORMS (PORTALS) ===== */}
       {isAddModalOpen && (
         <AddAssetModal
           theme={theme}
