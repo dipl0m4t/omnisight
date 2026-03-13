@@ -29,6 +29,8 @@ import {
   BtcFeesWidget,
 } from "./components/AnalyticsWidgets";
 import { LiquidationMapWidget } from "./components/LiquidationMapWidget";
+import { LongShortWidget } from "./components/LongShortWidget";
+import { StablecoinWidget } from "./components/StablecoinWidget";
 
 function App() {
   // ==========================================
@@ -511,6 +513,8 @@ function App() {
                   theme={theme}
                   className="md:col-span-20"
                 />
+                <LongShortWidget theme={theme} className="md:col-span-20" />
+                <StablecoinWidget theme={theme} className="md:col-span-20" />
 
                 <FearAndGreedWidget theme={theme} />
                 <MarketCapWidget theme={theme} />

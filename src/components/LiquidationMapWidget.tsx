@@ -75,7 +75,7 @@ export const LiquidationMapWidget = ({
     };
 
     fetchLiquidity();
-    const interval = setInterval(fetchLiquidity, 30000); // Update once in a 30 sec
+    const interval = setInterval(fetchLiquidity, 60000); // Update once in a 30 sec
     return () => clearInterval(interval);
   }, []);
 
@@ -109,15 +109,15 @@ export const LiquidationMapWidget = ({
 
   return (
     <div
-      className={`relative p-6 sm:p-8 rounded-[24px] border thick-glass flex flex-col transition-colors duration-300 ${className} ${theme === "dark" ? "border-white/10 bg-zinc-900/40" : "border-zinc-200 bg-white/50"}`}
+      className={`relative p-6 sm:p-6 rounded-[24px] border thick-glass flex flex-col transition-colors duration-300 ${className} ${theme === "dark" ? "border-white/10 bg-zinc-900/40" : "border-zinc-200 bg-white/50"}`}
     >
       {/* Header */}
       <div className="flex justify-between items-start z-10">
         <div>
-          <p className="text-[15px] font-bold uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-300">
+          <p className="text-[13px] font-bold uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-300">
             Order Book Liquidity Map
           </p>
-          <p className="text-[13px] font-black uppercase tracking-widest text-zinc-500 mt-1">
+          <p className="text-[12px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mt-1">
             BTCUSDT • Spot Depth Clustered
           </p>
         </div>
@@ -250,7 +250,7 @@ export const LiquidationMapWidget = ({
         </div>
       </div>
 
-      {/* Glow */}
+      {/* BG Light */}
       <div
         className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-full rounded-full blur-[100px] pointer-events-none transition-all duration-1000 ${
           isExpanded ? "opacity-100" : "opacity-0"

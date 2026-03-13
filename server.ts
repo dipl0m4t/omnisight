@@ -35,7 +35,7 @@ app.post("/api/portfolio", async (req, res) => {
       return res.status(400).json({ error: "Not all fields are filled in!" });
     }
 
-    // 3. Даем команду Призме создать строку в таблице PortfolioItem
+    // Give the command to Prisma to create a row in the PortfolioItem table.
     const newAsset = await prisma.portfolioItem.create({
       data: {
         coinId: String(coinId),
@@ -44,7 +44,7 @@ app.post("/api/portfolio", async (req, res) => {
       },
     });
 
-    // 4. Отправляем успешно созданную запись обратно в браузер
+    // Send the successfully created entry back to the browser
     res.status(201).json(newAsset);
   } catch (error) {
     console.error("Error saving asset:", error);
@@ -118,8 +118,87 @@ app.get("/api/liquidations", async (req, res) => {
     const data = await binanceRes.json();
     res.json(data);
   } catch (error: any) {
-    console.error("🔥 Ошибка бэкенда:", error.message);
+    console.error("Backend error:", error.message);
     res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/long-short", async (req, res) => {
+  try {
+    const response = await fetch(
+      "https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=5m&limit=1",
+      {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Binance API Error ${response.status}: ${errText}`);
+    }
+
+    const data = await response.json();
+    const raw = data[0];
+
+    const longsPercent = parseFloat(raw.longAccount) * 100;
+    const cleanData = {
+      longs: Number(longsPercent.toFixed(1)),
+      shorts: Number((100 - longsPercent).toFixed(1)),
+      ratio: parseFloat(raw.longShortRatio).toFixed(2),
+    };
+
+    res.json(cleanData);
+  } catch (error: any) {
+    console.error("Error in the Long/Short API: ", error);
+    res.status(500).json({ error: "Failed to fetch long/short data" });
+  }
+});
+
+app.get("/api/stablecoins", async (req, res) => {
+  try {
+    const response = await fetch(
+      "https://stablecoins.llama.fi/stablecoincharts/all",
+      {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`DefiLlama API Error ${response.status}: ${errText}`);
+    }
+
+    const data = await response.json();
+    const last30Days = data.slice(-30);
+    const chartData = last30Days.map((item: any) => {
+      const dateObj = new Date(item.date * 1000);
+
+      return {
+        date: dateObj.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
+        value: item.totalCirculating.peggedUSD / 1_000_000_000,
+      };
+    });
+    const oldCap = chartData[0].value;
+    const currentCap = chartData[chartData.length - 1].value;
+    const changePercent = ((currentCap - oldCap) / oldCap) * 100;
+
+    res.json({
+      currentCap: currentCap.toFixed(2),
+      changePercent: changePercent.toFixed(2),
+      chartData: chartData,
+    });
+  } catch (error: any) {
+    console.error("Error in the Stablecoins API: ", error);
+    res.status(500).json({ error: "Failed to fetch stablecoins data" });
   }
 });
 

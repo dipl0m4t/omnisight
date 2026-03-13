@@ -111,7 +111,7 @@ const WidgetCard = ({
           ></div>
 
           <div className="flex justify-between items-center z-10 w-full pr-2">
-            <p className="text-[15px] sm:text-[13px] font-bold uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-300 z-10">
+            <p className="text-[13px] font-bold uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-300 z-10">
               {title}
             </p>
             {action && action}
@@ -131,7 +131,7 @@ const WidgetCard = ({
                 {denominator}
               </span>
               <span
-                className={`text-[13px] sm:text-xs font-black tracking-widest uppercase leading-none ${colorClass}`}
+                className={`text-[13px] sm:text-sm font-black tracking-widest uppercase leading-none ${colorClass}`}
               >
                 {status}
               </span>
@@ -459,7 +459,7 @@ export const BtcFeesWidget = ({ theme }: { theme: string }) => {
       title="BTC Network Fees"
       value={fastest}
       denominator="sat/vB"
-      status={`ECONOMY: ${economy} SAT/VB`}
+      status={`ECONOMY: ${economy}`}
       colorClass={colorClass}
       bgClass={bgClass}
       className="md:col-span-5 lg:col-span-5"

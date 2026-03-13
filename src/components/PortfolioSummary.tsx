@@ -185,7 +185,7 @@ export const PortfolioSummary = ({
         className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 transition-all duration-300 ${isChartOpen ? "mb-8" : "mb-2"}`}
       >
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] pb-2 text-zinc-600 dark:text-zinc-300 text-left cursor-default">
+          <p className="text-[13px] font-bold uppercase tracking-[0.2em] pb-2 text-zinc-600 dark:text-zinc-300 text-left cursor-default">
             Total Balance
           </p>
           <div className="flex items-baseline gap-4">
@@ -218,19 +218,19 @@ export const PortfolioSummary = ({
               >
                 <button
                   onClick={() => setActiveView("chart")}
-                  className={`px-5 py-2.5 text-[11px] font-black uppercase tracking-widest transition-all rounded-xl cursor-pointer ${activeView === "chart" ? (theme === "dark" ? "bg-white/10 text-white shadow-lg" : "bg-white text-black shadow-md") : "text-zinc-500"}`}
+                  className={`px-5 py-2.5 text-[12px] font-black uppercase tracking-widest transition-all rounded-xl cursor-pointer ${activeView === "chart" ? (theme === "dark" ? "bg-white/10 text-white shadow-lg" : "bg-white text-black shadow-md") : "text-zinc-500"}`}
                 >
                   Performance
                 </button>
                 <button
                   onClick={() => setActiveView("distribution")}
-                  className={`px-5 py-2.5 text-[11px] font-black uppercase tracking-widest transition-all rounded-xl cursor-pointer ${activeView === "distribution" ? (theme === "dark" ? "bg-white/10 text-white shadow-lg" : "bg-white text-black shadow-md") : "text-zinc-500"}`}
+                  className={`px-5 py-2.5 text-[12px] font-black uppercase tracking-widest transition-all rounded-xl cursor-pointer ${activeView === "distribution" ? (theme === "dark" ? "bg-white/10 text-white shadow-lg" : "bg-white text-black shadow-md") : "text-zinc-500"}`}
                 >
                   Assets
                 </button>
               </div>
               <div
-                className={`flex items-center justify-center px-5 py-3 text-sm font-black transition-all border uppercase shadow-sm cursor-default rounded-2xl backdrop-blur-2xl ${theme === "dark" ? "border-white/10 bg-slate-800/60 text-white/90" : "border-slate-200 bg-white/80 text-slate-700"}`}
+                className={`flex items-center justify-center px-5 py-3 text-[13px] font-black tracking-widest transition-all border uppercase shadow-sm cursor-default rounded-2xl backdrop-blur-2xl ${theme === "dark" ? "border-white/10 bg-zinc-900/10 text-white/90" : "border-zinc-200 bg-white/80 text-zinc-800"}`}
               >
                 7d Chart
               </div>
