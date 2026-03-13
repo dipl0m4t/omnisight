@@ -68,7 +68,7 @@ export const StablecoinWidget = ({
 
         {/* Right: Stats & Toggle */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          {/* Badge: Мы добавили flex-1, чтобы на мобилке она занимала всё место слева от кнопки */}
+          {/* Badge */}
           <div
             className={`flex-1 sm:flex-none flex items-center justify-between sm:justify-center gap-2 sm:gap-3 px-3 py-2 text-[10px] sm:text-[12px] font-black tracking-tighter sm:tracking-[0.1em] transition-all border uppercase rounded-xl backdrop-blur-2xl whitespace-nowrap
             ${theme === "dark" ? "border-white/10 bg-zinc-900/40 text-white/90" : "border-zinc-200 bg-white/80 text-zinc-800"}`}
@@ -110,13 +110,12 @@ export const StablecoinWidget = ({
         </div>
       </div>
 
-      {/* Chart Container: Исправляем ошибку width(-1) */}
+      {/* Chart Container */}
       <div
         className={`transition-all duration-500 ease-in-out overflow-hidden ${
           isExpanded ? "max-h-[400px] opacity-100 mt-6" : "max-h-0 opacity-0"
         }`}
       >
-        {/* Фиксированная высота для контейнера, чтобы Recharts не тупил */}
         <div className="h-[250px] w-full relative z-10">
           {isExpanded && (
             <ResponsiveContainer width="99%" height="100%">
