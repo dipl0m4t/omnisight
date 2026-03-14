@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import axios from "axios";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -10,7 +11,20 @@ app.use(cors());
 // IMPORTANT: Teaching Express to understand JSON format in req.body
 app.use(express.json());
 
-// Create the route (API endpoint) which React will request data from
+app.get("/api/markets", async (req, res) => {
+  try {
+    // Bypassing CORS
+    const response = await axios.get(
+      "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=true",
+    );
+    res.json(response.data);
+  } catch (error) {
+    console.error("Error with request to CoinGecko:", error);
+    res.status(500).json({ error: "Unable to retrieve market data" });
+  }
+});
+
+// The route (API endpoint) which React will request data from
 app.get("/api/portfolio", async (req, res) => {
   try {
     // Ask Prisma to retrieve ALL records from the PortfolioItem table.

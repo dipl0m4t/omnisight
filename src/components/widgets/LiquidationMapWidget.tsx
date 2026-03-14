@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -11,75 +11,54 @@ import {
 
 export const LiquidationMapWidget = ({
   theme,
+  data,
+  isLoading,
   className,
 }: {
   theme: string;
+  data: any;
+  isLoading: boolean;
   className?: string;
 }) => {
-  const [data, setData] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
   const [isExpanded, setIsExpanded] = useState(false);
 
-  useEffect(() => {
-    if (!isExpanded) return;
+  // Перехватываем сырые данные и превращаем их в корзины (buckets)
+  const chartData = useMemo(() => {
+    if (!data || (!data.bids && !data.asks)) return [];
 
-    const fetchLiquidity = async () => {
-      try {
-        const res = await fetch("http://localhost:3001/api/liquidations");
-        const json = await res.json();
+    const bucketSize = 10;
+    const buckets: Record<
+      string,
+      { price: number; bidsVol: number; asksVol: number }
+    > = {};
 
-        if (json.error) throw new Error(json.error);
+    const processOrders = (orders: any[], type: "bids" | "asks") => {
+      orders.forEach((order) => {
+        const price = parseFloat(order[0]);
+        const vol = parseFloat(order[1]) * price; // Объем в долларах
+        const bucketPrice = Math.round(price / bucketSize) * bucketSize;
 
-        // Buckets for grouping orders
-        const bucketSize = 10;
-        const buckets: Record<
-          string,
-          { price: number; bidsVol: number; asksVol: number }
-        > = {};
+        if (!buckets[bucketPrice]) {
+          buckets[bucketPrice] = {
+            price: bucketPrice,
+            bidsVol: 0,
+            asksVol: 0,
+          };
+        }
 
-        // Helper function for processing bids and asks arrays
-        const processOrders = (orders: any[], type: "bids" | "asks") => {
-          orders.forEach((order) => {
-            const price = parseFloat(order[0]);
-            const vol = parseFloat(order[1]) * price; // Объем в долларах
-            const bucketPrice = Math.round(price / bucketSize) * bucketSize;
-
-            if (!buckets[bucketPrice]) {
-              buckets[bucketPrice] = {
-                price: bucketPrice,
-                bidsVol: 0,
-                asksVol: 0,
-              };
-            }
-
-            if (type === "bids") {
-              buckets[bucketPrice].bidsVol += vol; // Green (Support)
-            } else {
-              buckets[bucketPrice].asksVol += vol; // Red (Resistance)
-            }
-          });
-        };
-
-        if (json.bids) processOrders(json.bids, "bids");
-        if (json.asks) processOrders(json.asks, "asks");
-
-        // Convert it to an array and sort by price
-        const sortedData = Object.values(buckets).sort(
-          (a, b) => a.price - b.price,
-        );
-        setData(sortedData);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Failed to fetch liquidity", error);
-        setIsLoading(false);
-      }
+        if (type === "bids") {
+          buckets[bucketPrice].bidsVol += vol; // Green (Support)
+        } else {
+          buckets[bucketPrice].asksVol += vol; // Red (Resistance)
+        }
+      });
     };
 
-    fetchLiquidity();
-    const interval = setInterval(fetchLiquidity, 30000); // Update once in a 30 sec
-    return () => clearInterval(interval);
-  }, [isExpanded]);
+    if (data.bids) processOrders(data.bids, "bids");
+    if (data.asks) processOrders(data.asks, "asks");
+
+    return Object.values(buckets).sort((a, b) => a.price - b.price);
+  }, [data]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -177,9 +156,15 @@ export const LiquidationMapWidget = ({
               </div>
             ) : (
               isExpanded && (
-                <ResponsiveContainer width="100%" height={300}>
+                // Добавили minWidth={1} и minHeight={1} против ошибки Recharts
+                <ResponsiveContainer
+                  width="99%"
+                  height={300}
+                  minWidth={1}
+                  minHeight={1}
+                >
                   <BarChart
-                    data={data}
+                    data={chartData}
                     margin={{ top: 10, right: 0, bottom: 0, left: 10 }}
                   >
                     <CartesianGrid

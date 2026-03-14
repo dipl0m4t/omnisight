@@ -1,23 +1,23 @@
 import { useEffect, useState } from "react";
-import { PortfolioSummary } from "./components/PortfolioSummary";
 import "./App.css";
+import { PortfolioSummary } from "./components/portfolio/PortfolioSummary";
 
-// --- TYPE & UTILS ---
+// === TYPE & UTILS ===
 import type { MarketRow, PortfolioItem } from "./types/crypto";
 import { useTheme } from "./components/theme/ThemeContext";
 
-// --- COMPONENTS ---
-import BackgroundGeometry from "./components/BackgroundGeometry";
-import { Header } from "./components/Header";
-import { ControlBar } from "./components/ControlBar";
-import { MarketsTable } from "./components/MarketsTable";
-import { PortfolioTable } from "./components/PortfolioTable";
-import { TablePagination } from "./components/TablePagination";
+// === COMPONENTS ===
+import BackgroundGeometry from "./components/layout/BackgroundGeometry";
+import { Header } from "./components/layout/Header";
+import { ControlBar } from "./components/layout/ControlBar";
+import { MarketsTable } from "./components/markets/MarketsTable";
+import { PortfolioTable } from "./components/portfolio/PortfolioTable";
+import { TablePagination } from "./components/ui/table/TablePagination";
 import {
   AddAssetModal,
   EditAssetModal,
   DeleteModal,
-} from "./components/Modals";
+} from "./components/portfolio/Modals";
 import {
   useDashboardData,
   FearAndGreedWidget,
@@ -28,15 +28,15 @@ import {
   DefiWidget,
   TrendingWidget,
   BtcFeesWidget,
-} from "./components/AnalyticsWidgets";
-import { LiquidationMapWidget } from "./components/LiquidationMapWidget";
-import { LongShortWidget } from "./components/LongShortWidget";
-import { StablecoinWidget } from "./components/StablecoinWidget";
+} from "./components/widgets/AnalyticsWidgets";
+import { LiquidationMapWidget } from "./components/widgets/LiquidationMapWidget";
+import { LongShortWidget } from "./components/widgets/LongShortWidget";
+import { StablecoinWidget } from "./components/widgets/StablecoinWidget";
 
 function App() {
-  // ==========================================
+  // ======================
   // 1. STATE MANAGEMENT
-  // ==========================================
+  // ======================
   const [markets, setMarkets] = useState<MarketRow[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [activeTab, setActiveTab] = useState("markets");
@@ -88,9 +88,9 @@ function App() {
   const [sortKey, setSortKey] = useState("market_cap");
   const [sortDirection, setSortDirection] = useState("desc");
 
-  // ==========================================
+  // ==========================
   // 2. EFFECTS & LIFECYCLES
-  // ==========================================
+  // ==========================
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
@@ -118,7 +118,7 @@ function App() {
       try {
         if (isFirstTime) setLoading(true);
         const res = await fetch(
-          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=true",
+          "http://localhost:3001/api/markets",
           { signal: controller.signal }, // Linking fetch to the controller
         );
         const data = await res.json();
@@ -132,11 +132,11 @@ function App() {
           );
         }
       } catch (error: any) {
-        // If the request was killed by us (AbortError), we simply ignore the error
+        // If the request was killed by the user (AbortError), it simply ignore the error
         if (error.name === "AbortError") return;
         activeTab === "markets" && setError("SYNC_ERROR");
       } finally {
-        // Remove the download only if the component is still alive.
+        // Remove the download only if the component is still alive
         if (!controller.signal.aborted) setLoading(false);
       }
     }
@@ -164,7 +164,7 @@ function App() {
         const data = await res.json();
         setPortfolio(data);
       } catch (error: any) {
-        // Die quietly if the loading was interrupted intentionally
+        // Dying quietly if the loading was interrupted intentionally
         if (error.name === "AbortError") return;
         console.error(
           "SYNC_ERROR: Failed to load portfolio from database",
@@ -240,9 +240,9 @@ function App() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // ===========================================
+  // ============================================
   // 3. DATA PROCESSING (FILTRATION AND SORTING)
-  // ===========================================
+  // ============================================
   const filteredMarkets = markets.filter((coin) => {
     if (showFavoritesOnly && !favorites.includes(coin.id)) return false;
     if (searchQuery) {
@@ -332,9 +332,9 @@ function App() {
         : 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // ==========================================
+  // ===================
   // 4. EVENT HANDLERS
-  // ==========================================
+  // ===================
   const toggleFavorite = (id: string) =>
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
@@ -579,7 +579,7 @@ function App() {
                   theme={theme}
                   data={dashboardData?.longShort}
                   isLoading={isDashboardLoading}
-                  className="md:col-span-20"
+                  className="md:col-span-20 animate-content-reveal [animation-delay:100ms] [animation-fill-mode:backwards]"
                 />
 
                 <TrendingWidget
@@ -597,7 +597,7 @@ function App() {
                   theme={theme}
                   data={dashboardData?.stablecoins}
                   isLoading={isDashboardLoading}
-                  className="md:col-span-20"
+                  className="md:col-span-20 animate-content-reveal [animation-delay:200ms] [animation-fill-mode:backwards]"
                 />
 
                 <OpenInterestWidget
@@ -618,7 +618,9 @@ function App() {
 
                 <LiquidationMapWidget
                   theme={theme}
-                  className="md:col-span-20"
+                  data={dashboardData?.liquidation}
+                  isLoading={isDashboardLoading}
+                  className="md:col-span-20 animate-content-reveal [animation-delay:300ms] [animation-fill-mode:backwards]"
                 />
               </div>
             </div>

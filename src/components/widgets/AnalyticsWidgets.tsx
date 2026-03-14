@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { WidgetLoader, WidgetError } from "./ui/WidgetStates";
+import { WidgetLoader, WidgetError } from "../ui/WidgetStates";
 
 // ===============================
 // 1. SMART CACHE & CUSTOM HOOK
@@ -57,9 +57,9 @@ export function useDashboardData() {
   return { data, isLoading, isError };
 }
 
-// ==============================
+// ================================
 // 2. UNIVERSAL WIDGET FRAMEWORK
-// ==============================
+// ================================
 const WidgetCard = ({
   theme,
   title,
@@ -124,9 +124,9 @@ const WidgetCard = ({
   );
 };
 
-// ===========
+// =============
 // 3. WIDGETS
-// ===========
+// =============
 
 export const FearAndGreedWidget = ({ theme, data, isLoading }: any) => {
   const value = data ? parseInt(data.value) : 0;

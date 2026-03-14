@@ -1,37 +1,15 @@
-import { useState, useEffect } from "react";
-
 export const LongShortWidget = ({
   theme,
+  data,
+  isLoading,
   className,
 }: {
   theme: string;
-  data: any; //
+  data: any;
   isLoading: boolean;
   className?: string;
 }) => {
-  const [data, setData] = useState<{
-    longs: number;
-    shorts: number;
-    ratio: string;
-  } | null>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch("http://localhost:3001/api/long-short");
-        const json = await res.json();
-        setData(json);
-      } catch (error) {
-        console.error("Failed to fetch long/short data", error);
-      }
-    };
-
-    fetchData();
-    const interval = setInterval(fetchData, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  if (!data) {
+  if (isLoading || !data) {
     return (
       <div
         className={`p-6 rounded-[24px] border thick-glass h-[180px] flex flex-col items-center justify-center ${theme === "dark" ? "border-white/10 bg-white/5" : "border-zinc-200 bg-white/50"} ${className}`}
@@ -43,7 +21,7 @@ export const LongShortWidget = ({
     );
   }
 
-  // Settings for SVG pie charts
+  // Settings for the SVG Donut Chart
   const radius = 42;
   const circumference = 2 * Math.PI * radius;
   const longOffset = circumference - (data.longs / 100) * circumference;
@@ -60,7 +38,11 @@ export const LongShortWidget = ({
         </p>
         <div
           className={`flex items-center gap-1 justify-center px-3 py-2 text-[13px] font-black tracking-[0.15em] transition-all border uppercase shadow-sm cursor-default rounded-xl backdrop-blur-2xl 
-              ${theme === "dark" ? "border-white/10 bg-zinc-900/10 text-white/90" : "border-zinc-200 bg-white/80 text-zinc-800"}`}
+            ${
+              theme === "dark"
+                ? "border-white/10 bg-zinc-900/10 text-white/90"
+                : "border-zinc-200 bg-white/80 text-zinc-800"
+            }`}
         >
           <span
             className={`mr-2 ${theme === "dark" ? "text-white" : "text-black"}`}
@@ -101,7 +83,7 @@ export const LongShortWidget = ({
                 strokeWidth="15"
                 className="text-emerald-500/20"
               />
-              {/* Full circle */}
+              {/* Full donut */}
               <circle
                 cx="50"
                 cy="50"
@@ -133,7 +115,7 @@ export const LongShortWidget = ({
         <div
           className={`flex-1 flex items-center gap-4 p-4 rounded-2xl border ${theme === "dark" ? "bg-red-500/10 border-red-500/20" : "bg-red-500/5 border-red-500/20"}`}
         >
-          {/* Pie chart */}
+          {/* Donut chart */}
           <div className="relative w-32 h-32 shrink-0">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
               <circle

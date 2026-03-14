@@ -1,5 +1,5 @@
-import { SortableHeader } from "./Table/SortableHeader";
-import type { PortfolioItem, MarketRow } from "../types/crypto";
+import { SortableHeader } from "../ui/table/SortableHeader";
+import type { PortfolioItem, MarketRow } from "../../types/crypto";
 
 interface PortfolioTableProps {
   currentPortfolio: PortfolioItem[];

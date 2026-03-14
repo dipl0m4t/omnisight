@@ -7,7 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { WidgetLoader, WidgetError } from "./ui/WidgetStates";
+import { WidgetLoader, WidgetError } from "../ui/WidgetStates";
 
 export const StablecoinWidget = ({
   theme,
@@ -118,7 +118,12 @@ export const StablecoinWidget = ({
       >
         <div className="h-[250px] w-full relative z-10">
           {isExpanded && (
-            <ResponsiveContainer width="99%" height="100%">
+            <ResponsiveContainer
+              width="99%"
+              height="100%"
+              minWidth={1}
+              minHeight={1}
+            >
               <AreaChart
                 data={data.chartData}
                 margin={{ top: 10, right: 5, left: 5, bottom: 0 }}

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Logo } from "./Logo";
-import { ThemeToggle } from "./theme/ThemeToggle";
+import { Logo } from "../layout/Logo";
+import { ThemeToggle } from "../theme/ThemeToggle";
 
 interface HeaderProps {
   activeTab: string;

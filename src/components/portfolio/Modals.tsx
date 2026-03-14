@@ -210,7 +210,7 @@ export const AddAssetModal = ({
   </div>
 );
 
-// Editing Modal
+// Edit Modal
 export const EditAssetModal = ({
   theme,
   editingAsset,

@@ -1,4 +1,4 @@
-import { LiveClock } from "./LiveClock";
+import { LiveClock } from "../ui/LiveClock";
 
 interface ControlBarProps {
   activeTab: string;

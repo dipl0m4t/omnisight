@@ -1,11 +1,11 @@
-import { SparklineChart } from "./SparklineChart";
-import { SortableHeader } from "./Table/SortableHeader";
+import { SparklineChart } from "../markets/SparklineChart";
+import { SortableHeader } from "../ui/table/SortableHeader";
 import {
   formatPrice,
   formatMarketCap,
   generateSparklinePath,
-} from "../utils/helpers";
-import type { MarketRow } from "../types/crypto";
+} from "../../utils/helpers";
+import type { MarketRow } from "../../types/crypto";
 
 interface MarketsTableProps {
   theme: string;

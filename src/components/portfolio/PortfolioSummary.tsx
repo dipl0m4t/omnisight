@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { PortfolioItem, MarketRow } from "../types/crypto";
+import type { PortfolioItem, MarketRow } from "../../types/crypto";
 
 interface PortfolioSummaryProps {
   portfolio: PortfolioItem[];
