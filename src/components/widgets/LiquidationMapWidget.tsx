@@ -22,7 +22,7 @@ export const LiquidationMapWidget = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Перехватываем сырые данные и превращаем их в корзины (buckets)
+  // Intercept raw data and turn it into buckets
   const chartData = useMemo(() => {
     if (!data || (!data.bids && !data.asks)) return [];
 
@@ -156,7 +156,6 @@ export const LiquidationMapWidget = ({
               </div>
             ) : (
               isExpanded && (
-                // Добавили minWidth={1} и minHeight={1} против ошибки Recharts
                 <ResponsiveContainer
                   width="99%"
                   height={300}

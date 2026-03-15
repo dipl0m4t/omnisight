@@ -17,9 +17,9 @@ body {
 }
 
 /* 
-============================================================
+===============================================
 GLASSMORPHISM SYSTEM
-============================================================ 
+===============================================
 */
 
 /* CORE GLASS CLASS: The blur and saturation create the "frosted glass" effect. */
@@ -77,9 +77,9 @@ GLASSMORPHISM SYSTEM
 }
 
 /* 
-============================================================
+===============================================
 ANIMATIONS
-============================================================ 
+===============================================
 */
 
 /* CONTENT REVEAL: Elements slide up and blur out for a smooth entry. */
@@ -125,7 +125,7 @@ THEME TRANSITIONS (View Transitions API)
 
 /* 
 CIRCLE REVEAL: This creates the "expanding circle" effect when changing themes.
-We use CSS variables (--click-x, --click-y) passed from JavaScript. 
+Use CSS variables (--click-x, --click-y) passed from JavaScript. 
 */
 .theme-transition::view-transition-old(root),
 .theme-transition::view-transition-new(root) {
@@ -170,9 +170,9 @@ We use CSS variables (--click-x, --click-y) passed from JavaScript.
 }
 
 /* 
-============================================================
+===========================================
 FAVORITES STAR ANIMATION
-============================================================ 
+===========================================
 */
 
 @keyframes star-glow {

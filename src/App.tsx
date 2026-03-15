@@ -240,9 +240,9 @@ function App() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // ============================================
+  // ==============================================
   // 3. DATA PROCESSING (FILTRATION AND SORTING)
-  // ============================================
+  // ==============================================
   const filteredMarkets = markets.filter((coin) => {
     if (showFavoritesOnly && !favorites.includes(coin.id)) return false;
     if (searchQuery) {
@@ -332,9 +332,9 @@ function App() {
         : 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // ===================
+  // ====================
   // 4. EVENT HANDLERS
-  // ===================
+  // ====================
   const toggleFavorite = (id: string) =>
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],

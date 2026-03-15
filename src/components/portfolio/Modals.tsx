@@ -1,4 +1,4 @@
-// 1. Deleting Modal
+// Deleting Modal
 export const DeleteModal = ({
   theme,
   confirmDeleteAsset,
@@ -37,7 +37,7 @@ export const DeleteModal = ({
   </div>
 );
 
-// 2. Adding Modal
+// Adding Modal
 export const AddAssetModal = ({
   theme,
   handleAddAsset,
@@ -210,7 +210,7 @@ export const AddAssetModal = ({
   </div>
 );
 
-// Edit Modal
+// Editing Modal
 export const EditAssetModal = ({
   theme,
   editingAsset,

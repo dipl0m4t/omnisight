@@ -198,7 +198,7 @@ export const MarketsTable = ({
             })
           )}
 
-          {/* Spacers for empty lines (only show if NOT loading and there are coins but there are less then 10 of em ) */}
+          {/* Spacers for empty lines (only show if NOT loading and there are coins but there are less then 10 of them ) */}
           {!loading &&
             currentCoins.length > 0 &&
             currentCoins.length < itemsPerPage &&
